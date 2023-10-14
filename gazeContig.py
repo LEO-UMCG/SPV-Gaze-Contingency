@@ -607,24 +607,64 @@ def run_trial(trial_pars, trial_index, should_recal):
                     if eye_used == 0 and new_sample.isLeftSample():
                         g_x, g_y = new_sample.getLeftEye().getGaze()
 
+                    print(f"At this point, gaze pos are: {g_x}, {g_y}")
+                    # Draw current gaze position
+                    surf.fill((128, 128, 128))  # clear the screen
+                    pygame.draw.line(win, (0, 255, 0),
+                                     (int(g_x - 20), int(g_y)),
+                                     (int(g_x + 20), int(g_y)), 3)
+                    pygame.draw.line(win, (0, 255, 0),
+                                     (int(g_x), int(g_y - 20)),
+                                     (int(g_x), int(g_y + 20)), 3)
+                    pygame.display.flip()
+
+
                     ### SB:
+                    #
+                    # fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
+                    # if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
+                    # record gaze start time
+                    if not in_hit_region:
+                        if gaze_start == -1:
+                            gaze_start = pygame.time.get_ticks()
+                            in_hit_region = True
+                    # check the gaze duration and fire
+                    if in_hit_region:
+                        gaze_dur = pygame.time.get_ticks() - gaze_start
+                        if gaze_dur > minimum_duration:
+                            trigger_fired = True
+
+                            # Draw current gaze position
+                            surf.fill((128, 128, 128))  # clear the screen
+                            pygame.draw.line(win, (0, 255, 0),
+                                             (int(g_x - 20), int(g_y / 2.0)),
+                                             (int(g_x + 20), int(g_y / 2.0)), 3)
+                            pygame.draw.line(win, (0, 255, 0),
+                                             (int(g_x), int(g_y / 2.0 - 20)),
+                                             (int(g_x), int(g_y / 20)), 3)
+                            pygame.display.flip()
+
+                    # gaze outside the hit region, reset variables
+                    in_hit_region = False
+                    gaze_start = -1
+
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
-                    fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
-                    if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
-                        # record gaze start time
-                        if not in_hit_region:
-                            if gaze_start == -1:
-                                gaze_start = pygame.time.get_ticks()
-                                in_hit_region = True
-                        # check the gaze duration and fire
-                        if in_hit_region:
-                            gaze_dur = pygame.time.get_ticks() - gaze_start
-                            if gaze_dur > minimum_duration:
-                                trigger_fired = True
-                    else:  # gaze outside the hit region, reset variables
-                        in_hit_region = False
-                        gaze_start = -1
+                    # fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
+                    # if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
+                    #     # record gaze start time
+                    #     if not in_hit_region:
+                    #         if gaze_start == -1:
+                    #             gaze_start = pygame.time.get_ticks()
+                    #             in_hit_region = True
+                    #     # check the gaze duration and fire
+                    #     if in_hit_region:
+                    #         gaze_dur = pygame.time.get_ticks() - gaze_start
+                    #         if gaze_dur > minimum_duration:
+                    #             trigger_fired = True
+                    # else:  # gaze outside the hit region, reset variables
+                    #     in_hit_region = False
+                    #     gaze_start = -1
 
             # update the "old_sample"
             old_sample = new_sample
