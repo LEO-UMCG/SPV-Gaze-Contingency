@@ -60,7 +60,7 @@ if len(script_path) != 0:
 pygame.init()
 
 # Set this variable to True to run the script in "Dummy Mode"
-dummy_mode = False
+dummy_mode = True
 
 # Workaround for pygame 2.0 shows black screen when running in full
 # screen mode in linux
@@ -524,15 +524,12 @@ def run_trial(trial_pars, trial_index, should_recal):
 
     # put the central fixation cross on screen for 1000 ms
     surf.fill((128, 128, 128))  # clear the screen
-
-    ### SB: Removed central fixation
-    # pygame.draw.line(win, (0, 255, 0),
-    #                  (int(scn_width / 2.0 - 20), int(scn_height / 2.0)),
-    #                  (int(scn_width / 2.0 + 20), int(scn_height / 2.0)), 3)
-    # pygame.draw.line(win, (0, 255, 0),
-    #                  (int(scn_width / 2.0), int(scn_height / 2.0 - 20)),
-    #                  (int(scn_width / 2.0), int(scn_height / 2.0 + 20)), 3)
-    ### SB: end
+    pygame.draw.line(win, (0, 255, 0),
+                     (int(scn_width / 2.0 - 20), int(scn_height / 2.0)),
+                     (int(scn_width / 2.0 + 20), int(scn_height / 2.0)), 3)
+    pygame.draw.line(win, (0, 255, 0),
+                     (int(scn_width / 2.0), int(scn_height / 2.0 - 20)),
+                     (int(scn_width / 2.0), int(scn_height / 2.0 + 20)), 3)
     pygame.display.flip()
 
     # send over a message to log the onset of the `fixation cr`oss
@@ -547,7 +544,6 @@ def run_trial(trial_pars, trial_index, should_recal):
     el_tracker.sendMessage('!V DRAWLINE 0 255 0 %d %d %d %d' % line_hor)
     el_tracker.sendMessage('!V DRAWLINE 0 255 0 %d %d %d %d' % line_ver)
 
-    ### SB: Start edit ###
     # Here we implement a gaze trigger, so the target only comes up when
     # the subject direct gaze to the fixation cross
     new_sample = None
@@ -555,13 +551,15 @@ def run_trial(trial_pars, trial_index, should_recal):
     trigger_fired = False
     in_hit_region = False
     trigger_start_time = pygame.time.get_ticks()
-    # fire the trigger following a 300-ms gaze
-    minimum_duration = 300
+    # fire the trigger following a 1000-ms gaze
+    minimum_duration = 1000
     gaze_start = -1
-    follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed; when set to
-    # false, we will instead render parts of the image based on eye position
 
-    frame_num = 0
+    # Params for gaze contingency:
+    # follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
+    # display_roi = True  # when set to true, will render a portion of the image based on eye position
+    # frame_num = 0
+
     while not trigger_fired:
         # abort the current trial if the tracker is no longer recording
         error = el_tracker.isRecording()
@@ -570,14 +568,14 @@ def run_trial(trial_pars, trial_index, should_recal):
             abort_trial()
             return error
 
-        # # if the trigger did not fire in 10 seconds, abort trial
-        # if pygame.time.get_ticks() - trigger_start_time >= 10000:
-        #     el_tracker.sendMessage('trigger_timeout_recal')
-        #     # re-calibrate in the following trial
-        #     should_recal = 'yes'
-        #     # abort trial
-        #     abort_trial()
-        #     return should_recal
+        # if the trigger did not fire in 10 seconds, abort trial
+        if pygame.time.get_ticks() - trigger_start_time >= 10000:
+            el_tracker.sendMessage('trigger_timeout_recal')
+            # re-calibrate in the following trial
+            should_recal = 'yes'
+            # abort trial
+            abort_trial()
+            return should_recal
 
         # check for keyboard events, skip a trial if ESCAPE is pressed
         # terminate the task is Ctrl-C is pressed
@@ -611,93 +609,57 @@ def run_trial(trial_pars, trial_index, should_recal):
                     if eye_used == 0 and new_sample.isLeftSample():
                         g_x, g_y = new_sample.getLeftEye().getGaze()
 
-                    if follow_gaze_position:
-                        print(f"At this point, gaze pos are: {g_x}, {g_y}")
-                        # Draw current gaze position
-                        surf.fill((128, 128, 128))  # clear the screen
-                        pygame.draw.line(win, (0, 255, 0),
-                                         (int(g_x - 20), int(g_y)),
-                                         (int(g_x + 20), int(g_y)), 3)
-                        pygame.draw.line(win, (0, 255, 0),
-                                         (int(g_x), int(g_y - 20)),
-                                         (int(g_x), int(g_y + 20)), 3)
-                        pygame.display.flip()
-
-                    else:
-                        # Render image where gaze is currently laying:
-                        surf.fill((128, 128, 128))  # clear the screen
-                        gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
-                        print("Got gaze adjusted image.")
-                        size = gaze_adjusted_img.shape[1::-1]
-                        gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
-                        surf.blit(gaze_adjusted_img, (0, 0))
-                        pygame.display.flip()
-
-                    # Save output to make a gif out of:
-                    frame_num += 1
-                    filename = f"screen_{frame_num}.jpg"
-                    pygame.image.save(win, 'rendered_experiment/' + filename)
-
-
-                    ### SB:
-                    # #
-                    # # fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
-                    # # if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
-                    # # record gaze start time
-                    # if not in_hit_region:
-                    #     if gaze_start == -1:
-                    #         gaze_start = pygame.time.get_ticks()
-                    #         in_hit_region = True
-                    # # check the gaze duration and fire
-                    # if in_hit_region:
-                    #     gaze_dur = pygame.time.get_ticks() - gaze_start
-                    #     if gaze_dur > minimum_duration:
-                    #         trigger_fired = True
+                    # if follow_gaze_position:
+                    #     print(f"At this point, gaze pos are: {g_x}, {g_y}")
+                    #     # Draw current gaze position
+                    #     surf.fill((128, 128, 128))  # clear the screen
+                    #     pygame.draw.line(win, (0, 255, 0),
+                    #                      (int(g_x - 20), int(g_y)),
+                    #                      (int(g_x + 20), int(g_y)), 3)
+                    #     pygame.draw.line(win, (0, 255, 0),
+                    #                      (int(g_x), int(g_y - 20)),
+                    #                      (int(g_x), int(g_y + 20)), 3)
+                    #     pygame.display.flip()
                     #
-                    #         if follow_gaze_position:
-                    #             # Draw current gaze position
-                    #             surf.fill((128, 128, 128))  # clear the screen
-                    #             pygame.draw.line(win, (0, 255, 0),
-                    #                              (int(g_x - 20), int(g_y / 2.0)),
-                    #                              (int(g_x + 20), int(g_y / 2.0)), 3)
-                    #             pygame.draw.line(win, (0, 255, 0),
-                    #                              (int(g_x), int(g_y / 2.0 - 20)),
-                    #                              (int(g_x), int(g_y / 20)), 3)
-                    #             pygame.display.flip()
+                    # if display_roi:
+                    #     # Render image where gaze is currently laying:
+                    #     surf.fill((128, 128, 128))  # clear the screen
+                    #     gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
+                    #     print("Got gaze adjusted image.")
+                    #     size = gaze_adjusted_img.shape[1::-1]
+                    #     gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
+                    #     surf.blit(gaze_adjusted_img, (0, 0))
+                    #     pygame.display.flip()
                     #
-                    # # gaze outside the hit region, reset variables
-                    # in_hit_region = False
-                    # gaze_start = -1
+                    # # Save output to make a gif out of:
+                    # frame_num += 1
+                    # filename = f"screen_{frame_num}.jpg"
+                    # pygame.image.save(win, 'rendered_experiment/' + filename)
 
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
-                    # fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
-                    # if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
-                    #     # record gaze start time
-                    #     if not in_hit_region:
-                    #         if gaze_start == -1:
-                    #             gaze_start = pygame.time.get_ticks()
-                    #             in_hit_region = True
-                    #     # check the gaze duration and fire
-                    #     if in_hit_region:
-                    #         gaze_dur = pygame.time.get_ticks() - gaze_start
-                    #         if gaze_dur > minimum_duration:
-                    #             trigger_fired = True
-                    # else:  # gaze outside the hit region, reset variables
-                    #     in_hit_region = False
-                    #     gaze_start = -1
+                    fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
+                    if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
+                        # record gaze start time
+                        if not in_hit_region:
+                            if gaze_start == -1:
+                                gaze_start = pygame.time.get_ticks()
+                                in_hit_region = True
+                        # check the gaze duration and fire
+                        if in_hit_region:
+                            gaze_dur = pygame.time.get_ticks() - gaze_start
+                            if gaze_dur > minimum_duration:
+                                trigger_fired = True
+                    else:  # gaze outside the hit region, reset variables
+                        in_hit_region = False
+                        gaze_start = -1
 
             # update the "old_sample"
             old_sample = new_sample
-    ### SB: End edit ###
 
     # show the image
     surf.fill((128, 128, 128))  # clear the screen
-    gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
-    print("Got gaze adjusted image.")
-    size = gaze_adjusted_img.shape[1::-1]
-    gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
-    surf.blit(gaze_adjusted_img, (0, 0))
+    surf.blit(img, (0, 0))
     pygame.display.flip()
     onset_time = pygame.time.get_ticks()  # image onset time
 
@@ -731,11 +693,44 @@ def run_trial(trial_pars, trial_index, should_recal):
     pygame.event.clear()  # clear all cached events if there were any
     get_keypress = False
     RT = -1
+
+    # Params for gaze contingency:
+    follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
+    display_roi = True  # when set to true, will render a portion of the image based on eye position
+    frame_num = 0
     while not get_keypress:
-        # present the picture for a maximum of 5 seconds
-        if pygame.time.get_ticks() - onset_time >= 5000:
-            el_tracker.sendMessage('time_out')
-            break
+        # Show either a cross following the gaze or a gaze-contingent display window:
+        if follow_gaze_position:
+            print(f"At this point, gaze pos are: {g_x}, {g_y}")
+            # Draw current gaze position
+            surf.fill((128, 128, 128))  # clear the screen
+            pygame.draw.line(win, (0, 255, 0),
+                             (int(g_x - 20), int(g_y)),
+                             (int(g_x + 20), int(g_y)), 3)
+            pygame.draw.line(win, (0, 255, 0),
+                             (int(g_x), int(g_y - 20)),
+                             (int(g_x), int(g_y + 20)), 3)
+            pygame.display.flip()
+
+        if display_roi:
+            # Render image where gaze is currently laying:
+            surf.fill((128, 128, 128))  # clear the screen
+            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
+            print("Got gaze adjusted image.")
+            size = gaze_adjusted_img.shape[1::-1]
+            gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
+            surf.blit(gaze_adjusted_img, (0, 0))
+            pygame.display.flip()
+
+        # Save output to make a gif out of:
+        frame_num += 1
+        filename = f"screen_{frame_num}.jpg"
+        pygame.image.save(win, 'rendered_experiment/' + filename)
+
+        # # present the picture for a maximum of 5 seconds
+        # if pygame.time.get_ticks() - onset_time >= 5000:
+        #     el_tracker.sendMessage('time_out')
+        #     break
 
         # abort the current trial if the tracker is no longer recording
         error = el_tracker.isRecording()
