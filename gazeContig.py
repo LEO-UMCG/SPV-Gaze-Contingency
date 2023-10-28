@@ -649,7 +649,7 @@ def run_trial(trial_pars, trial_index, should_recal):
     follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
     display_roi = True  # when set to true, will render a portion of the image based on eye position
     # For edge detection. Options: 'sobel' or 'canny':
-    edge_detector = 'canny'
+    edge_detector = 'sobel'
 
     onset_time = pygame.time.get_ticks()  # image onset time
 
