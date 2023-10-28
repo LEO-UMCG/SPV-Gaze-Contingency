@@ -49,6 +49,7 @@ from CalibrationGraphicsPygame import CalibrationGraphics
 from math import fabs
 from string import ascii_letters, digits
 
+from edgeDetection import getSobelEdges, getCannyEdges
 from focusedRegion import getGazeContigImg
 
 # Switch to the script folder
@@ -554,10 +555,6 @@ def run_trial(trial_pars, trial_index, should_recal):
     # fire the trigger following a 1000-ms gaze
     minimum_duration = 1000
     gaze_start = -1
-
-    # Params for gaze contingency:
-    # follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
-    # display_roi = True  # when set to true, will render a portion of the image based on eye position
     frame_num = 0
 
     while not trigger_fired:
@@ -609,28 +606,6 @@ def run_trial(trial_pars, trial_index, should_recal):
                     if eye_used == 0 and new_sample.isLeftSample():
                         g_x, g_y = new_sample.getLeftEye().getGaze()
 
-                    # if follow_gaze_position:
-                    #     print(f"At this point, gaze pos are: {g_x}, {g_y}")
-                    #     # Draw current gaze position
-                    #     surf.fill((128, 128, 128))  # clear the screen
-                    #     pygame.draw.line(win, (0, 255, 0),
-                    #                      (int(g_x - 20), int(g_y)),
-                    #                      (int(g_x + 20), int(g_y)), 3)
-                    #     pygame.draw.line(win, (0, 255, 0),
-                    #                      (int(g_x), int(g_y - 20)),
-                    #                      (int(g_x), int(g_y + 20)), 3)
-                    #     pygame.display.flip()
-                    #
-                    # if display_roi:
-                    #     # Render image where gaze is currently laying:
-                    #     surf.fill((128, 128, 128))  # clear the screen
-                    #     gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
-                    #     print("Got gaze adjusted image.")
-                    #     size = gaze_adjusted_img.shape[1::-1]
-                    #     gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
-                    #     surf.blit(gaze_adjusted_img, (0, 0))
-                    #     pygame.display.flip()
-                    #
                     # Save output to make a gif out of:
                     frame_num += 1
                     filename = f"screen_{frame_num}.jpg"
@@ -658,45 +633,26 @@ def run_trial(trial_pars, trial_index, should_recal):
             old_sample = new_sample
 
     # show the image
-    surf.fill((128, 128, 128))  # clear the screen
-    surf.blit(img, (0, 0))
-    pygame.display.flip()
-    onset_time = pygame.time.get_ticks()  # image onset time
-
-    # send over a message to mark the onset of the image
-    el_tracker.sendMessage('image_onset')
-
-    # Send a message to clear the Data Viewer screen, get it ready for
-    # drawing the pictures during visualization
-    el_tracker.sendMessage('!V CLEAR 128 128 128')
-
-    # send over a message to specify where the image is stored relative
-    # to the EDF data file, see Data Viewer User Manual, "Protocol for
-    # EyeLink Data to Viewer Integration"
-    bg_image = '../../images/' + pic
-    imgload_msg = '!V IMGLOAD CENTER %s %d %d %d %d' % (bg_image,
-                                                        int(scn_width / 2.0),
-                                                        int(scn_height / 2.0),
-                                                        int(scn_width),
-                                                        int(scn_height))
-    el_tracker.sendMessage(imgload_msg)
-
-    # send interest area messages to record in the EDF data file
-    # here we draw a rectangular IA, for illustration purposes
-    # format: !V IAREA RECTANGLE <id> <left> <top> <right> <bottom> [label]
-    # for all supported interest area commands, see the Data Viewer Manual,
-    # "Protocol for EyeLink Data to Viewer Integration"
-    ia_pars = (1, left, top, right, bottom, 'screen_center')
-    el_tracker.sendMessage('!V IAREA RECTANGLE %d %d %d %d %d %s' % ia_pars)
+    # surf.fill((128, 128, 128))  # clear the screen
+    # surf.blit(img, (0, 0))
+    # pygame.display.flip()
 
     # show the image for 5 secs; break if the SPACEBAR is pressed
     pygame.event.clear()  # clear all cached events if there were any
     get_keypress = False
     RT = -1
 
-    # Params for gaze contingency:
+    ##########
+    # Params #
+    ##########
+    # For gaze contingency:
     follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
     display_roi = True  # when set to true, will render a portion of the image based on eye position
+    # For edge detection. Options: 'sobel' or 'canny':
+    edge_detector = 'canny'
+
+    onset_time = pygame.time.get_ticks()  # image onset time
+
     while not get_keypress:
 
         # Do we have a sample in the sample buffer?
@@ -730,20 +686,47 @@ def run_trial(trial_pars, trial_index, should_recal):
         if display_roi:
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y)
+            edges = getSobelEdges(original_image) if edge_detector == 'sobel' else getCannyEdges(original_image)
+            gaze_adjusted_img = getGazeContigImg(edges, g_x, g_y)
             print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
             gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
             surf.blit(gaze_adjusted_img, (0, 0))
             pygame.display.flip()
 
+        # send over a message to mark the onset of the image
+        el_tracker.sendMessage('image_onset')
+
+        # Send a message to clear the Data Viewer screen, get it ready for
+        # drawing the pictures during visualization
+        el_tracker.sendMessage('!V CLEAR 128 128 128')
+
+        # send over a message to specify where the image is stored relative
+        # to the EDF data file, see Data Viewer User Manual, "Protocol for
+        # EyeLink Data to Viewer Integration"
+        bg_image = '../../images/' + pic
+        imgload_msg = '!V IMGLOAD CENTER %s %d %d %d %d' % (bg_image,
+                                                            int(scn_width / 2.0),
+                                                            int(scn_height / 2.0),
+                                                            int(scn_width),
+                                                            int(scn_height))
+        el_tracker.sendMessage(imgload_msg)
+
+        # send interest area messages to record in the EDF data file
+        # here we draw a rectangular IA, for illustration purposes
+        # format: !V IAREA RECTANGLE <id> <left> <top> <right> <bottom> [label]
+        # for all supported interest area commands, see the Data Viewer Manual,
+        # "Protocol for EyeLink Data to Viewer Integration"
+        ia_pars = (1, left, top, right, bottom, 'screen_center')
+        el_tracker.sendMessage('!V IAREA RECTANGLE %d %d %d %d %d %s' % ia_pars)
+
         # Save output to make a gif out of:
         frame_num += 1
         filename = f"screen_{frame_num}.jpg"
         pygame.image.save(win, 'rendered_experiment/' + filename)
 
-        # present the picture for a maximum of 5 seconds
-        if pygame.time.get_ticks() - onset_time >= 5000:
+        # present the picture for a maximum of 10 seconds
+        if pygame.time.get_ticks() - onset_time >= 10000:
             el_tracker.sendMessage('time_out')
             break
 
