@@ -60,7 +60,7 @@ if len(script_path) != 0:
 pygame.init()
 
 # Set this variable to True to run the script in "Dummy Mode"
-dummy_mode = True
+dummy_mode = False
 
 # Workaround for pygame 2.0 shows black screen when running in full
 # screen mode in linux
@@ -532,7 +532,7 @@ def run_trial(trial_pars, trial_index, should_recal):
                      (int(scn_width / 2.0), int(scn_height / 2.0 + 20)), 3)
     pygame.display.flip()
 
-    # send over a message to log the onset of the `fixation cr`oss
+    # send over a message to log the onset of the `fixation cross
     el_tracker.sendMessage('fix_onset')
 
     # OPTIONAL - send over messages to request Data Viewer to draw
@@ -558,7 +558,7 @@ def run_trial(trial_pars, trial_index, should_recal):
     # Params for gaze contingency:
     # follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
     # display_roi = True  # when set to true, will render a portion of the image based on eye position
-    # frame_num = 0
+    frame_num = 0
 
     while not trigger_fired:
         # abort the current trial if the tracker is no longer recording
@@ -631,10 +631,10 @@ def run_trial(trial_pars, trial_index, should_recal):
                     #     surf.blit(gaze_adjusted_img, (0, 0))
                     #     pygame.display.flip()
                     #
-                    # # Save output to make a gif out of:
-                    # frame_num += 1
-                    # filename = f"screen_{frame_num}.jpg"
-                    # pygame.image.save(win, 'rendered_experiment/' + filename)
+                    # Save output to make a gif out of:
+                    frame_num += 1
+                    filename = f"screen_{frame_num}.jpg"
+                    pygame.image.save(win, 'rendered_experiment/' + filename)
 
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
@@ -697,8 +697,23 @@ def run_trial(trial_pars, trial_index, should_recal):
     # Params for gaze contingency:
     follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
     display_roi = True  # when set to true, will render a portion of the image based on eye position
-    frame_num = 0
     while not get_keypress:
+
+        # Do we have a sample in the sample buffer?
+        # and does it differ from the one we've seen before?
+        new_sample = el_tracker.getNewestSample()
+        if new_sample is not None:
+            if old_sample is not None:
+                if new_sample.getTime() != old_sample.getTime():
+                    # check if the new sample has data for the eye
+                    # currently being tracked; if so, we retrieve the current
+                    # gaze position and PPD (how many pixels correspond to 1
+                    # deg of visual angle, at the current gaze position)
+                    if eye_used == 1 and new_sample.isRightSample():
+                        g_x, g_y = new_sample.getRightEye().getGaze()
+                    if eye_used == 0 and new_sample.isLeftSample():
+                        g_x, g_y = new_sample.getLeftEye().getGaze()
+
         # Show either a cross following the gaze or a gaze-contingent display window:
         if follow_gaze_position:
             print(f"At this point, gaze pos are: {g_x}, {g_y}")
@@ -727,10 +742,10 @@ def run_trial(trial_pars, trial_index, should_recal):
         filename = f"screen_{frame_num}.jpg"
         pygame.image.save(win, 'rendered_experiment/' + filename)
 
-        # # present the picture for a maximum of 5 seconds
-        # if pygame.time.get_ticks() - onset_time >= 5000:
-        #     el_tracker.sendMessage('time_out')
-        #     break
+        # present the picture for a maximum of 5 seconds
+        if pygame.time.get_ticks() - onset_time >= 5000:
+            el_tracker.sendMessage('time_out')
+            break
 
         # abort the current trial if the tracker is no longer recording
         error = el_tracker.isRecording()

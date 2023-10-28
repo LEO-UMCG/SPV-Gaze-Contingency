@@ -15,3 +15,4 @@ Make a new venv and install the following packages:
     pip install PIL
     pip install --index-url=https://pypi.sr-support.com sr-research-pylink
 
+Start the script `gazeContig.py` with your workstation connected to the host PC with EyeLink configured.
