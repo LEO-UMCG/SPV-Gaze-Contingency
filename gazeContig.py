@@ -49,7 +49,6 @@ from CalibrationGraphicsPygame import CalibrationGraphics
 from math import fabs
 from string import ascii_letters, digits
 
-from edgeDetection import getSobelEdges, getCannyEdges
 from focusedRegion import getGazeContigImg
 
 # Switch to the script folder
@@ -649,12 +648,11 @@ def run_trial(trial_pars, trial_index, should_recal):
     follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
     display_roi = True  # when set to true, will render a portion of the image based on eye position
     # For edge detection. Options: 'sobel' or 'canny':
-    edge_detector = 'sobel'
+    edge_detector = 'canny'
 
     onset_time = pygame.time.get_ticks()  # image onset time
 
     while not get_keypress:
-
         # Do we have a sample in the sample buffer?
         # and does it differ from the one we've seen before?
         new_sample = el_tracker.getNewestSample()
@@ -684,10 +682,10 @@ def run_trial(trial_pars, trial_index, should_recal):
             pygame.display.flip()
 
         if display_roi:
+
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            edges = getSobelEdges(original_image) if edge_detector == 'sobel' else getCannyEdges(original_image)
-            gaze_adjusted_img = getGazeContigImg(edges, g_x, g_y)
+            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector)
             print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
             gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')

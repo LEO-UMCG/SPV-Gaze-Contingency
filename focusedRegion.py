@@ -1,55 +1,63 @@
-import cv2
 import numpy as np
-import pygame
+from edgeDetection import getSobelEdges, getCannyEdges
 
 
-def test():
-    # original image
-    image = cv2.imread('images/img_1.jpg')
-    eye_location = [400, 300]
+def capGazeCoords(gaze_x, gaze_y, patch_size, image):
+    # Make sure we don't exceed the bounds of the image.
 
-    height = 50
-    contours = np.array(
-        [[eye_location[0] - height, eye_location[1] - height], [eye_location[0] - height, eye_location[1] + height],
-         [eye_location[0] + height, eye_location[1] + height], [eye_location[0] + height, eye_location[1] - height]])
+    # If we are outside the right side of the image, cap it at the right-hand borders:
+    if gaze_x + patch_size >= image.shape[1]:
+        gaze_x = image.shape[1] - patch_size - 1
 
-    mask = np.zeros(image.shape, dtype=np.uint8)
-    cv2.fillPoly(mask, pts=[contours], color=(255, 255, 255))
+    # If we are outside the left side of the image, cap it at the left-hand borders:
+    if gaze_x - patch_size <= 0:
+        gaze_x = patch_size + 1
 
-    # apply the mask
-    masked_image = cv2.bitwise_and(image, mask)
+    # If we are outside the bottom of the image, cap it at the bottom borders:
+    if gaze_y - patch_size <= 0:
+        gaze_y = patch_size + 1
 
-    # Draw dot: image, coords, radius, color, filled
-    cv2.circle(masked_image, (eye_location[0], eye_location[1]), 10, (0, 0, 255), -1)
+    # If we are outside the top of the image, cap it at the top borders:
+    if gaze_y + patch_size >= image.shape[0]:
+        gaze_y = image.shape[0] - patch_size - 1
 
-    # show the result
-    cv2.imshow('image_masked.png', masked_image)
-    cv2.waitKey(0)
+    return gaze_x, gaze_y
 
 
-def getGazeContigImg(image, gaze_x, gaze_y):
-    eye_location = [gaze_x, gaze_y]
+def getGazeContigImg(image, gaze_x, gaze_y, edge_detector):
     print(f"Current gaze location: {gaze_x}, {gaze_y}")
 
-    height = 100
-    contours = np.array(
-        [[eye_location[0] - height, eye_location[1] - height],
-         [eye_location[0] - height, eye_location[1] + height],
-         [eye_location[0] + height, eye_location[1] + height],
-         [eye_location[0] + height, eye_location[1] - height]])
+    # Closed eye condition - return black screen:
+    if gaze_x == -32768.0 and gaze_y == -32768.0:
+        return np.zeros(image.shape, dtype=np.uint8)
 
-    mask = np.zeros(image.shape, dtype=np.uint8)
-    cv2.fillPoly(mask, pts=np.int32([contours]), color=(255, 255, 255))
+    patch_size = 100  # This is the patch size. Make this a configurable parameter
+    gaze_x, gaze_y = capGazeCoords(gaze_x, gaze_y, patch_size, image)
 
-    # apply the mask
-    updated_img_to_show = cv2.bitwise_and(image, mask)
+    # Crop the image at the gaze coordinates:
+    # (use a copy of the image so you don't change the original image)
+    # (convert to ints because gaze coords are floats)
+    crop_img = image[int(gaze_y - patch_size): int(gaze_y + patch_size),
+               int(gaze_x - patch_size): int(gaze_x + patch_size)].copy()
 
-    # size = updated_img_to_show.shape[1::-1]
-    # surface = pygame.image.frombuffer(updated_img_to_show.flatten(), size, 'RGB')
-    # return surface.convert()
+    # Get the edges on the cropped portion of the image:
+    cropped_edge_img = getSobelEdges(crop_img) if edge_detector == 'sobel' else getCannyEdges(crop_img)
+
+    # Create a black canvas of size of the image:
+    black_canvas = np.zeros(image.shape, dtype=np.uint8)
+    # Paste the cropped out region onto the black canvas:
+    black_canvas[int(gaze_y - patch_size): int(gaze_y + patch_size),
+               int(gaze_x - patch_size): int(gaze_x + patch_size)] = cropped_edge_img
+    updated_img_to_show = black_canvas
+
+    # For testing this function without the eyetracker:
+    # cv2.imshow('Resulting image', updated_img_to_show)
+    # cv2.waitKey(0)
+
     return updated_img_to_show
 
-# img = pygame.image.load('./images/img_1.jpg')
-# img = pygame.transform.scale(img, (1000, 1800))
-img = cv2.imread('images/img_1.jpg')
-x = getGazeContigImg(img, 400, 600)
+
+# For testing this function without the eyetracker:
+# img = cv2.imread('images/img_1.jpg')
+# x = getGazeContigImg(img, 400, 600, 'sobel')
+
