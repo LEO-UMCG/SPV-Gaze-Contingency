@@ -25,20 +25,13 @@ def capGazeCoords(gaze_x, gaze_y, patch_size, image):
     return gaze_x, gaze_y
 
 
-def getGazeContigImg(image, gaze_x, gaze_y, edge_detector):
-    # Options:
-    # <circle_opt1> Edge detection on just a circle (-) generates border artifacts
-    # <circle_opt2> Edge detection on a square, which is then cropped into a circle
-    # <square>
-    shape_to_crop = "circle_opt2"
-
+def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_size):
     print(f"Current gaze location: {gaze_x}, {gaze_y}")
 
     # Closed eye condition - return black screen:
     if gaze_x == -32768.0 and gaze_y == -32768.0:
         return np.zeros(image.shape, dtype=np.uint8)
 
-    patch_size = 100  # This is the patch size. Make this a configurable parameter
     gaze_x, gaze_y = capGazeCoords(gaze_x, gaze_y, patch_size, image)
 
     # Crop the image at the gaze coordinates:

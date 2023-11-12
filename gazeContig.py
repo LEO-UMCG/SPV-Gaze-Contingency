@@ -51,6 +51,9 @@ from string import ascii_letters, digits
 
 from focusedRegion import getGazeContigImg
 
+# Import parameters:
+from parameters import experiment_type, edge_detector, shape_to_crop, patch_size
+
 # Switch to the script folder
 script_path = os.path.dirname(sys.argv[0])
 if len(script_path) != 0:
@@ -641,15 +644,6 @@ def run_trial(trial_pars, trial_index, should_recal):
     get_keypress = False
     RT = -1
 
-    ##########
-    # Params #
-    ##########
-    # For gaze contingency:
-    follow_gaze_position = False  # Set this to true if you want to test gaze position is being followed with a cross
-    display_roi = True  # when set to true, will render a portion of the image based on eye position
-    # For edge detection. Options: 'sobel' or 'canny':
-    edge_detector = 'canny'
-
     onset_time = pygame.time.get_ticks()  # image onset time
 
     while not get_keypress:
@@ -669,7 +663,7 @@ def run_trial(trial_pars, trial_index, should_recal):
                         g_x, g_y = new_sample.getLeftEye().getGaze()
 
         # Show either a cross following the gaze or a gaze-contingent display window:
-        if follow_gaze_position:
+        if experiment_type == 'follow_gaze_position':
             print(f"At this point, gaze pos are: {g_x}, {g_y}")
             # Draw current gaze position
             surf.fill((128, 128, 128))  # clear the screen
@@ -681,11 +675,11 @@ def run_trial(trial_pars, trial_index, should_recal):
                              (int(g_x), int(g_y + 20)), 3)
             pygame.display.flip()
 
-        if display_roi:
+        if experiment_type == 'display_roi':
 
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector)
+            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector, shape_to_crop, patch_size)
             print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
             gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
@@ -834,3 +828,14 @@ for trial_pars in test_list:
 
 # Step 7: disconnect, download the EDF file, then terminate the task
 terminate_task()
+
+# Step 8: write the parameters set by the experimenter to a file
+relevant_folder = os.path.join(results_folder, session_identifier)
+parameters_logged = os.path.join(relevant_folder, session_identifier + '.txt')
+with open(parameters_logged, 'w') as f:
+    for line in open("parameters.py"):
+        li = line.strip()
+        # Don't write comments or empty lines to file
+        if not li.startswith("#") and len(line.strip()) != 0:
+            f.write(line.rstrip())
+            f.write('\n')
