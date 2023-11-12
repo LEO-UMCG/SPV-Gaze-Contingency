@@ -6,7 +6,7 @@ import glob
 
 image_list = []
 TO_GIF = "rendered_experiment"
-GIF_NAME = "gaze_cont_sobel"
+GIF_NAME = "gaze_cont_canny_circle_opt2"
 
 # Save consecutive images in an image list:
 for filename in sorted(glob.glob(f'{TO_GIF}/*.jpg'), key=len):

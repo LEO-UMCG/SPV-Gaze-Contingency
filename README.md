@@ -1,5 +1,6 @@
 # Gaze contingency
 
+## About
 Tracking the position of the eye:
 ![Output sample](gifs/tracking_eye_pos.gif)
 
