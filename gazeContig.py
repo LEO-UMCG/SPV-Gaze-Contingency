@@ -78,10 +78,9 @@ full_screen = False
 scn_width, scn_height = 0, 0
 
 # Store the parameters of all trials in a list, [cond, image]
-trials = [
-    ['cond_1', 'img_1.jpg'],
-    ['cond_2', 'img_2.jpg'],
-]
+trials = []
+for x in range(num_trials):
+    trials.append([f'cond_{x+1}', f'img_{x+1}'])
 
 # Set up EDF data file name and local data folder
 #
@@ -811,8 +810,8 @@ else:
 
 # Step 6: Run the experimental trials, index all the trials
 
-# construct a list of 4 trials
-test_list = trials[:] * 2
+# construct a list of x trials
+test_list = trials[:] * num_trials
 
 # randomize the trial list
 random.shuffle(test_list)

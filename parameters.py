@@ -9,6 +9,14 @@
 #       <display_roi> Render a portion of the image based on eye position
 experiment_type = 'display_roi'
 
+##########
+# Trials #
+##########
+
+# How many trials i.e. repititions of the images to show (int).
+# Usage example: num_trials = 1
+num_trials = 1
+
 ##################
 # Image duration #
 ##################
