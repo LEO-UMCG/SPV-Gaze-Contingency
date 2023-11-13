@@ -80,7 +80,7 @@ scn_width, scn_height = 0, 0
 # Store the parameters of all trials in a list, [cond, image]
 trials = []
 for x in range(num_trials):
-    trials.append([f'cond_{x+1}', f'img_{x+1}'])
+    trials.append([f'cond_{x+1}', f'img_{x+1}.{image_extension}'])
 
 # Set up EDF data file name and local data folder
 #
@@ -128,6 +128,17 @@ session_identifier = edf_fname + time_str
 session_folder = os.path.join(results_folder, session_identifier)
 if not os.path.exists(session_folder):
     os.makedirs(session_folder)
+
+# write the parameters set by the experimenter to a file
+relevant_folder = os.path.join(results_folder, session_identifier)
+parameters_logged = os.path.join(relevant_folder, session_identifier + '.txt')
+with open(parameters_logged, 'w') as f:
+    for line in open("parameters.py"):
+        li = line.strip()
+        # Don't write comments or empty lines to file
+        if not li.startswith("#") and len(line.strip()) != 0:
+            f.write(line.rstrip())
+            f.write('\n')
 
 # Step 1: Connect to the EyeLink Host PC
 #
@@ -824,14 +835,3 @@ for trial_pars in test_list:
 
 # Step 7: disconnect, download the EDF file, then terminate the task
 terminate_task()
-
-# Step 8: write the parameters set by the experimenter to a file
-relevant_folder = os.path.join(results_folder, session_identifier)
-parameters_logged = os.path.join(relevant_folder, session_identifier + '.txt')
-with open(parameters_logged, 'w') as f:
-    for line in open("parameters.py"):
-        li = line.strip()
-        # Don't write comments or empty lines to file
-        if not li.startswith("#") and len(line.strip()) != 0:
-            f.write(line.rstrip())
-            f.write('\n')

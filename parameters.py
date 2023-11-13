@@ -10,6 +10,14 @@
 experiment_type = 'display_roi'
 
 ##########
+# Images #
+##########
+
+# The file extension of the images provided (string).
+# Usage example: image_extension = 'jpg'
+image_extension = 'jpg'
+
+##########
 # Trials #
 ##########
 
