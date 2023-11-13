@@ -9,6 +9,22 @@
 #       <display_roi> Render a portion of the image based on eye position
 experiment_type = 'display_roi'
 
+##################
+# Image duration #
+##################
+
+# This determines how long (in ms) to present the participant with the image before timeout (int).
+# Usage example: max_presentation_duration_img = 10000
+max_presentation_duration_img = 10000
+
+####################
+# Trigger duration #
+####################
+
+# This determines how long (in ms) the participant has to fixate on the trigger cross before timeout (int).
+# Usage example: trigger_timeout_duration = 10000
+trigger_timeout_duration = 10000
+
 #################
 # Edge detector #
 #################

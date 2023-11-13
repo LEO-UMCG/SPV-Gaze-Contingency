@@ -52,7 +52,7 @@ from string import ascii_letters, digits
 from focusedRegion import getGazeContigImg
 
 # Import parameters:
-from parameters import experiment_type, edge_detector, shape_to_crop, patch_size
+from parameters import *
 
 # Switch to the script folder
 script_path = os.path.dirname(sys.argv[0])
@@ -567,8 +567,8 @@ def run_trial(trial_pars, trial_index, should_recal):
             abort_trial()
             return error
 
-        # if the trigger did not fire in 10 seconds, abort trial
-        if pygame.time.get_ticks() - trigger_start_time >= 10000:
+        # if the trigger did not fire in a provided number of seconds, abort trial
+        if pygame.time.get_ticks() - trigger_start_time >= trigger_timeout_duration:
             el_tracker.sendMessage('trigger_timeout_recal')
             # re-calibrate in the following trial
             should_recal = 'yes'
@@ -634,10 +634,7 @@ def run_trial(trial_pars, trial_index, should_recal):
             # update the "old_sample"
             old_sample = new_sample
 
-    # show the image
-    # surf.fill((128, 128, 128))  # clear the screen
-    # surf.blit(img, (0, 0))
-    # pygame.display.flip()
+    el_tracker.sendMessage('fix_trigger_fired')
 
     # show the image for 5 secs; break if the SPACEBAR is pressed
     pygame.event.clear()  # clear all cached events if there were any
@@ -717,8 +714,8 @@ def run_trial(trial_pars, trial_index, should_recal):
         filename = f"screen_{frame_num}.jpg"
         pygame.image.save(win, 'rendered_experiment/' + filename)
 
-        # present the picture for a maximum of 10 seconds
-        if pygame.time.get_ticks() - onset_time >= 10000:
+        # present the picture for a maximum of the provided number of seconds
+        if pygame.time.get_ticks() - onset_time >= max_presentation_duration_img:
             el_tracker.sendMessage('time_out')
             break
 
