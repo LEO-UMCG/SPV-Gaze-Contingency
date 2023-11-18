@@ -3,6 +3,13 @@ import cv2
 from edgeDetection import getSobelEdges, getCannyEdges
 
 
+def showImage(img, img_name, to_debug):
+    # Show images only if we are in debug mode:
+    if to_debug:
+        cv2.imshow(img_name, img)
+        cv2.waitKey(0)
+
+
 def capGazeCoords(gaze_x, gaze_y, patch_size, image):
     # Make sure we don't exceed the bounds of the image.
 
@@ -25,7 +32,9 @@ def capGazeCoords(gaze_x, gaze_y, patch_size, image):
     return gaze_x, gaze_y
 
 
-def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_size):
+def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_size, to_debug):
+    cropped_edge_img = None
+
     # For debugging:
     # print(f"Current gaze location: {gaze_x}, {gaze_y}")
 
@@ -43,27 +52,33 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
         # Localise circle on image:
         mask = np.zeros_like(image)
         mask = cv2.circle(mask, (int(gaze_x), int(gaze_y)), patch_size, (255, 255, 255), -1)
-        # cv2.imshow('Localise circle', mask)
-        # cv2.waitKey(0)
+        showImage(mask, 'Localise circle', to_debug)
 
         # Crop down the circular region to only the area of interest:
         crop_mask_img = mask[int(gaze_y - patch_size): int(gaze_y + patch_size),
                    int(gaze_x - patch_size): int(gaze_x + patch_size)].copy()
-        # cv2.imshow('Tight circle region', crop_mask_img)
-        # cv2.waitKey(0)
+        showImage(crop_mask_img, 'Tight circle region', to_debug)
 
         if shape_to_crop == 'circle_opt1':
             # Fill in white with actual image values:
             image_cropped = image[int(gaze_y - patch_size): int(gaze_y + patch_size),
                        int(gaze_x - patch_size): int(gaze_x + patch_size)].copy()
             crop_img = cv2.bitwise_and(image_cropped, crop_mask_img)
-            # cv2.imshow('Tight circle region', crop_img)
-            # cv2.waitKey(0)
+            showImage(crop_img, 'Filled circle region', to_debug)
+
+            # Make a True/False mask of pixels whose BGR values sum to more than zero
+            alpha = np.sum(crop_img, axis=-1) > 0
+
+            # Convert True/False to 0/255 and change type to "uint8" to match "na"
+            alpha = np.uint8(alpha * 255)
+
+            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
+            res = np.dstack((crop_img, alpha))
+            showImage(res, 'Black areas made transparent', to_debug)
 
             # Get the edges on the cropped portion of the image:
-            cropped_edge_img = getSobelEdges(crop_img) if edge_detector == 'sobel' else getCannyEdges(crop_img)
-            # cv2.imshow('Edges', cropped_edge_img)
-            # cv2.waitKey(0)
+            cropped_edge_img = getSobelEdges(res) if edge_detector == 'sobel' else getCannyEdges(res)
+            showImage(cropped_edge_img, 'Edges', to_debug)
 
         if shape_to_crop == 'circle_opt2':
             # Crop out a square:
@@ -71,13 +86,11 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
                        int(gaze_x - patch_size): int(gaze_x + patch_size)].copy()
 
             cropped_edge_img = getSobelEdges(crop_img) if edge_detector == 'sobel' else getCannyEdges(crop_img)
-            # cv2.imshow('Edge detection in square', cropped_edge_img)
-            # cv2.waitKey(0)
+            showImage(cropped_edge_img, 'Edge detection in square', to_debug)
 
             # Fill in white with actual image values:
             cropped_edge_img = cv2.bitwise_and(cropped_edge_img, crop_mask_img)
-            # cv2.imshow('Tight circle region', cropped_edge_img)
-            # cv2.waitKey(0)
+            showImage(cropped_edge_img, 'Filled circle region', to_debug)
 
     if shape_to_crop == 'square':
         crop_img = image[int(gaze_y - patch_size): int(gaze_y + patch_size),
@@ -85,8 +98,7 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
 
         # Get the edges on the cropped portion of the image:
         cropped_edge_img = getSobelEdges(crop_img) if edge_detector == 'sobel' else getCannyEdges(crop_img)
-        # cv2.imshow('Edges', cropped_edge_img)
-        # cv2.waitKey(0)
+        showImage(cropped_edge_img, 'Edges', to_debug)
 
     # Create a black canvas of size of the image:
     black_canvas = np.zeros(image.shape, dtype=np.uint8)
@@ -96,13 +108,11 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
     updated_img_to_show = black_canvas
 
     # For testing this function without the eyetracker:
-    # cv2.imshow('Resulting image', updated_img_to_show)
-    # cv2.waitKey(0)
+    showImage(updated_img_to_show, 'Resulting image', to_debug)
 
     return updated_img_to_show
 
 
 # For testing this function without the eyetracker:
 # img = cv2.imread('images/img_1.jpg')
-# x = getGazeContigImg(img, 400, 600, 'sobel')
-
+# x = getGazeContigImg(img, 400, 600, 'canny', 'circle_opt1', 100, True)

@@ -45,5 +45,5 @@ def getCannyEdges(img):
 
 
 # To test:
-img = cv2.imread('images/img_1.jpg')
-getCannyEdges(img)
+# img = cv2.imread('images/img_1.jpg')
+# getCannyEdges(img)

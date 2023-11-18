@@ -690,7 +690,7 @@ def run_trial(trial_pars, trial_index, should_recal):
 
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector, shape_to_crop, patch_size)
+            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector, shape_to_crop, patch_size, False)
             # For debug:
             # print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
@@ -835,7 +835,7 @@ random.shuffle(test_list)
 trial_index = 1
 should_recal = 'no'
 for trial_pars in test_list:
-    print(f"At trial: {trial_index}")
+    print(f"At stimulus presentation trial: {trial_index}")
     should_recal = run_trial(trial_pars, trial_index, should_recal)
     trial_index += 1
 
