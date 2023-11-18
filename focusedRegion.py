@@ -66,18 +66,8 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
             crop_img = cv2.bitwise_and(image_cropped, crop_mask_img)
             showImage(crop_img, 'Filled circle region', to_debug)
 
-            # Make a True/False mask of pixels whose BGR values sum to more than zero
-            alpha = np.sum(crop_img, axis=-1) > 0
-
-            # Convert True/False to 0/255 and change type to "uint8" to match "na"
-            alpha = np.uint8(alpha * 255)
-
-            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
-            res = np.dstack((crop_img, alpha))
-            showImage(res, 'Black areas made transparent', to_debug)
-
             # Get the edges on the cropped portion of the image:
-            cropped_edge_img = getSobelEdges(res) if edge_detector == 'sobel' else getCannyEdges(res)
+            cropped_edge_img = getSobelEdges(crop_img) if edge_detector == 'sobel' else getCannyEdges(crop_img)
             showImage(cropped_edge_img, 'Edges', to_debug)
 
         if shape_to_crop == 'circle_opt2':
@@ -114,5 +104,5 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
 
 
 # For testing this function without the eyetracker:
-# img = cv2.imread('images/img_1.jpg')
-# x = getGazeContigImg(img, 400, 600, 'canny', 'circle_opt1', 100, True)
+img = cv2.imread('images/img_1.jpg')
+x = getGazeContigImg(img, 400, 600, 'canny', 'circle_opt1', 100, True)
