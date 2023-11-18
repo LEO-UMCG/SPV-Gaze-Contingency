@@ -132,6 +132,15 @@ session_folder = os.path.join(results_folder, session_identifier)
 if not os.path.exists(session_folder):
     os.makedirs(session_folder)
 
+# create a folder to store the results of the rendered experiment
+rend_exp_identifier = "rendered_experiment"
+rend_exp_folder = os.path.join(session_folder, rend_exp_identifier)
+if not os.path.exists(rend_exp_folder):
+    os.makedirs(rend_exp_folder)
+    # create a subfolder for each experiment stimulus trial
+    for x in range(num_images):
+        os.makedirs(f"{rend_exp_folder}\stimulus_{x+1}")
+
 # write the parameters set by the experimenter to a file
 relevant_folder = os.path.join(results_folder, session_identifier)
 parameters_logged = os.path.join(relevant_folder, session_identifier + '.txt')
@@ -623,8 +632,8 @@ def run_trial(trial_pars, trial_index, should_recal):
 
                     # Save output to make a gif out of:
                     frame_num += 1
-                    filename = f"screen_{frame_num}.jpg"
-                    pygame.image.save(win, 'rendered_experiment/' + filename)
+                    filename = f"\screen_{frame_num}.jpg"
+                    pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
@@ -726,8 +735,8 @@ def run_trial(trial_pars, trial_index, should_recal):
 
         # Save output to make a gif out of:
         frame_num += 1
-        filename = f"screen_{frame_num}.jpg"
-        pygame.image.save(win, 'rendered_experiment/' + filename)
+        filename = f"\screen_{frame_num}.jpg"
+        pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
         # present the picture for a maximum of the provided number of seconds
         if pygame.time.get_ticks() - onset_time >= max_presentation_duration_img:

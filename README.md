@@ -32,6 +32,9 @@ Set the parameters to chosen values inside `parameters.py`.
 Start the script `gazeContig.py` with your workstation connected to the host PC with EyeLink configured.
 
 ### Output of the script
-The results will be created inside the `results\{result_fn}_{dt}\` directory where `{result_fn}` is a command-line input given by the experimenter (name of the run) and `{dt}` is the current datetime. Inside this directory, two files will be populated:
-* `.EDF` file: this is the output from EyeLink
-* `.txt` file: this file contains the parameter values chosen for this run, as retrieved from the `parameters.py` file 
+The results will be created inside the `results\{result_fn}_{dt}\` directory where `{result_fn}` is a command-line input given by the experimenter (name of the run) and `{dt}` is the current datetime. Inside this directory, the following two files will be populated:
+* `{result_fn}_{dt}.EDF` file: this is the output from EyeLink
+* `{result_fn}_{dt}.txt` file: this file contains the parameter values chosen for this run, as retrieved from the `parameters.py` file 
+
+Additionally, the following folder will be generated:
+* `rendered_experiment/`: this folder will contain a subdirectory for each of the number of input images you have provided. E.g. with the 2 example images, the subdirectories created are `stimulus_1/` and  `stimulus_2/`. Each of these subdirectories contains images of each of the screens the participant sees in the experiment. You can use the `make_gif.py` script to create a gif out of these images to display the experiment how the participant has experienced it.

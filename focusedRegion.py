@@ -104,5 +104,5 @@ def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_
 
 
 # For testing this function without the eyetracker:
-img = cv2.imread('images/img_1.jpg')
-x = getGazeContigImg(img, 400, 600, 'canny', 'circle_opt1', 100, True)
+# img = cv2.imread('images/img_1.jpg')
+# x = getGazeContigImg(img, 400, 600, 'canny', 'circle_opt1', 100, True)
