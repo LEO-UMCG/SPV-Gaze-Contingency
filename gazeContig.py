@@ -44,13 +44,14 @@ import pygame
 import random
 import time
 import cv2
+import glob
+
 from pygame.locals import *
 from CalibrationGraphicsPygame import CalibrationGraphics
 from math import fabs
 from string import ascii_letters, digits
-
+# Import supplementary logic:
 from focusedRegion import getGazeContigImg
-
 # Import parameters:
 from parameters import *
 
@@ -79,7 +80,9 @@ scn_width, scn_height = 0, 0
 
 # Store the parameters of all trials in a list, [cond, image]
 trials = []
-for x in range(num_trials):
+# Count the number of images in the "images" dir:
+num_images = len(glob.glob1("images/", f"*.{image_extension}"))
+for x in range(num_images):
     trials.append([f'cond_{x+1}', f'img_{x+1}.{image_extension}'])
 
 # Set up EDF data file name and local data folder
@@ -644,6 +647,7 @@ def run_trial(trial_pars, trial_index, should_recal):
             # update the "old_sample"
             old_sample = new_sample
 
+    # Notify that the participant met the conditions for stimulus presentation to start:
     el_tracker.sendMessage('fix_trigger_fired')
 
     # show the image for 5 secs; break if the SPACEBAR is pressed
@@ -687,7 +691,8 @@ def run_trial(trial_pars, trial_index, should_recal):
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
             gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, edge_detector, shape_to_crop, patch_size)
-            print("Got gaze adjusted image.")
+            # For debug:
+            # print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
             gaze_adjusted_img = pygame.image.frombuffer(gaze_adjusted_img.flatten(), size, 'RGB')
             surf.blit(gaze_adjusted_img, (0, 0))
@@ -830,6 +835,7 @@ random.shuffle(test_list)
 trial_index = 1
 should_recal = 'no'
 for trial_pars in test_list:
+    print(f"At trial: {trial_index}")
     should_recal = run_trial(trial_pars, trial_index, should_recal)
     trial_index += 1
 

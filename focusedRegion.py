@@ -26,7 +26,8 @@ def capGazeCoords(gaze_x, gaze_y, patch_size, image):
 
 
 def getGazeContigImg(image, gaze_x, gaze_y, edge_detector, shape_to_crop, patch_size):
-    print(f"Current gaze location: {gaze_x}, {gaze_y}")
+    # For debugging:
+    # print(f"Current gaze location: {gaze_x}, {gaze_y}")
 
     # Closed eye condition - return black screen:
     if gaze_x == -32768.0 and gaze_y == -32768.0:
