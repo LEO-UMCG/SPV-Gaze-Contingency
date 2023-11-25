@@ -25,11 +25,13 @@ Make a new venv and install the following packages:
     pip install PIL
     pip install --index-url=https://pypi.sr-support.com sr-research-pylink
 
+- [ ] _Update the above with a pip requirements file_.
+
 Set the parameters to chosen values inside `parameters.py`.
 
 **Optional**: copy in any images you want to use inside the `\images` directory. Alternatively, you can also run the experiments with the 2 images already provided in this directory.
 
-Start the script `gazeContig.py` with your workstation connected to the host PC with EyeLink configured.
+Start the script `main.py` with your workstation connected to the host PC with EyeLink configured.
 
 ### Output of the script
 The results will be created inside the `results\{result_fn}_{dt}\` directory where `{result_fn}` is a command-line input given by the experimenter (name of the run) and `{dt}` is the current datetime. Inside this directory, the following two files will be populated:

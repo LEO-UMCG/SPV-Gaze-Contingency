@@ -41,16 +41,18 @@ max_presentation_duration_img = 10000
 # Usage example: trigger_timeout_duration = 10000
 trigger_timeout_duration = 10000
 
-#################
-# Edge detector #
-#################
+#########################
+# Visual representation #
+#########################
 
-# This is the method of edge detection to use (string).
+# This is the method of visual representation to use (string).
 # Usage example: edge_detector = 'sobel'
 # Options are:
 #       <canny> Canny edge detection
 #       <sobel> Sobel edge detection
-edge_detector = 'sobel'
+#       <dl_jaap> Jaap's DL model
+#       <dl_ash> Ashkan's DL model
+vis_representation = 'dl_jaap'
 
 ################
 # Window shape #
@@ -70,4 +72,4 @@ shape_to_crop = 'circle_opt2'
 
 # This is the height (int) of the patch in which the viewer sees the gaze contingent image.
 # Usage example: patch_size = 100
-patch_size = 100
+patch_size = 128
