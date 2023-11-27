@@ -5,8 +5,7 @@ import noise
 import numpy as np
 from spvPlayer.config import *
 
-# DEVICE = torch.device('cuda:0')
-DEVICE = torch.device('cpu')
+DEVICE = torch.device(DEVICE_TYPE)
 
 
 def get_pMask_jaap(size=(PATCH_SIZE*2,PATCH_SIZE*2),phosphene_density=32,seed=1,
@@ -62,10 +61,11 @@ def perlin_noise_map(seed=0,shape=(PATCH_SIZE*2,PATCH_SIZE*2),scale=100,octaves=
 def prepAshEncoder():
 
     encoder = Representer(arryaOut=False).to(DEVICE)
-    # encoder.cuda()
+    if 'cuda' in DEVICE_TYPE:
+        encoder.cuda()
 
     encoder.eval()
-    encoder.load_state_dict(torch.load(ASH_ENC_DIR, map_location=torch.device('cpu')))
+    encoder.load_state_dict(torch.load(ASH_ENC_DIR, map_location=torch.device(DEVICE_TYPE)))
     return encoder
 
 
@@ -75,7 +75,8 @@ def prepRegSimulator():
     pMask = get_pMask_jaap()
     simulator = E2E_PhospheneSimulator_jaap(pMask=pMask, device=DEVICE)
     simulator.to(DEVICE)
-    # simulator.cuda()
+    if 'cuda' in DEVICE_TYPE:
+        simulator.cuda()
     return simulator
 
 

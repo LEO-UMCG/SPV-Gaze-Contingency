@@ -19,3 +19,6 @@ JAAP_ENC_DIR = "spvPlayer/models/exp4_B_S1_650_best_encoder.pth"
 JAAP_MAP_DIR = "spvPlayer/models/phosphene_map_exp4.pt"
 
 ASH_ENC_DIR = "spvPlayer/models/enc2_20230626_105329_35"
+
+# Whether to use 'cpu' or 'cuda:0'
+DEVICE_TYPE = 'cpu'

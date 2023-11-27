@@ -4,8 +4,7 @@ from torchvision import transforms
 # from matplotlib import pyplot as plt
 from spvPlayer.config import *
 
-# DEVICE = torch.device('cuda:0')
-DEVICE = torch.device('cpu')
+DEVICE = torch.device(DEVICE_TYPE)
 
 def prepJaapEncoder():
 
@@ -14,7 +13,7 @@ def prepJaapEncoder():
     # encoder.cuda()
 
     encoder.eval()
-    encoder.load_state_dict(torch.load(JAAP_ENC_DIR, map_location=torch.device('cpu')))
+    encoder.load_state_dict(torch.load(JAAP_ENC_DIR, map_location=torch.device(DEVICE_TYPE)))
     return encoder
 
 def prepSimulator():

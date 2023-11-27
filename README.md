@@ -16,6 +16,15 @@ Rendering parts of the image based on the current eye position:
 Rendering a gaze-contingent edge-detected version of the image:
 ![Output sample](gifs/gaze_cont_canny.gif)
 
+## Visual representation methods
+In regard to visual representation, the methods available are:
+* **Edge detectors**: canny, sobel 
+* **Deep learning models**: the models from Jaap and Ashkan.
+
+The edge detection model logic is contained in `edgeDetection.py`.
+
+The deep learning (DL) models come from the [spv-Player](https://github.com/arnejad/spv-Player) repo and the relevant logic is copied into this repo in the `spvPlayer/` directory.
+
 ## How to start
 
 Make a new venv and install the following packages:
@@ -27,7 +36,7 @@ Make a new venv and install the following packages:
 
 - [ ] _Update the above with a pip requirements file_.
 
-Set the parameters to chosen values inside `parameters.py`.
+Set the parameters to chosen values inside `parameters.py`. If you want to use a DL method for visual representation, ensure the parameters in `spvPlayer/config.py` are also set to chosen values.
 
 **Optional**: copy in any images you want to use inside the `\images` directory. Alternatively, you can also run the experiments with the 2 images already provided in this directory.
 

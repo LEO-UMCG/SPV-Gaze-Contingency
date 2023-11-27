@@ -52,7 +52,7 @@ trigger_timeout_duration = 10000
 #       <sobel> Sobel edge detection
 #       <dl_jaap> Jaap's DL model
 #       <dl_ash> Ashkan's DL model
-vis_representation = 'dl_jaap'
+vis_representation = 'dl_ash'
 
 ################
 # Window shape #
@@ -62,7 +62,7 @@ vis_representation = 'dl_jaap'
 # Usage example: shape_to_crop = 'circle_opt2'
 # Options are:
 #       <circle_opt1> Edge detection on just a circle (-) generates border artifacts
-#       <circle_opt2> Edge detection on a square, which is then cropped into a circle
+#       <circle_opt2> Edge detection on a square, which is then cropped into a circle [*Recommended]
 #       <square> Edge detection on a square
 shape_to_crop = 'circle_opt2'
 
