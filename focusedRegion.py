@@ -67,6 +67,12 @@ def launchAccordingVisRepMethod(crop_img, enc, sim, to_debug):
             cropped_edge_img = getCannyEdges(crop_img)
 
         showImage(cropped_edge_img, 'ED on patch', to_debug)
+
+        if dilate_edges:
+            kernel = np.ones((3, 3), np.uint8)
+            cropped_edge_img = cv2.dilate(cropped_edge_img, kernel, iterations=1)
+            showImage(cropped_edge_img, 'Dilated edges', to_debug)
+
         # Generate phosphene representation for ED methods:
         cropped_edge_img = generatePhosphenesForED(cropped_edge_img, sim, toggle=False)
 
@@ -175,7 +181,7 @@ def troubleshootGazeContig():
 
     encoder, simulator = initialisation_step()
 
-    img = cv2.imread('images/img_1.jpg')
+    img = cv2.imread('images/img_3.jpg')
     x = getGazeContigImg(img, 1282, 652, encoder, simulator, True)
     size = x.shape[1::-1]
     image_surface = pygame.image.frombuffer(x.flatten(), size, 'RGB')
@@ -192,4 +198,4 @@ def troubleshootGazeContig():
 
 
 # For testing:
-# troubleshootGazeContig()
+troubleshootGazeContig()

@@ -33,6 +33,15 @@ num_trials = 1
 # Usage example: to_randomize_trials = False
 to_randomize_trials = False
 
+#################
+# Edge-dilation #
+#################
+
+# Whether to dilate the edges when using an edge detection method (bool).
+# Usage example: dilate_edges = True
+dilate_edges = True
+
+
 ##################
 # Image duration #
 ##################
