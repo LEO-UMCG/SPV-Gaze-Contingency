@@ -36,9 +36,11 @@ Make a new venv and install the following packages:
 
 - [ ] _Update the above with a pip requirements file_.
 
-Set the parameters to chosen values inside `parameters.py`. If you want to use a DL method for visual representation, ensure the parameters in `spvPlayer/config.py` are also set to chosen values.
+Set the parameters to chosen values inside `parameters.py`. If you want to use a DL method for visual representation, ensure:
+* the parameters in `spvPlayer/config.py` are also set to chosen values
+* the models from the original [spv-Player](https://github.com/arnejad/spv-Player) repo are copied into the `spvPlayer/models` directory. See the `README.me` in the original [spv-Player](https://github.com/arnejad/spv-Player) repo for the download link.
 
-**Optional**: copy in any images you want to use inside the `\images` directory. Alternatively, you can also run the experiments with the 2 images already provided in this directory.
+Copy in any images you want to use inside the `\images` directory.
 
 Start the script `main.py` with your workstation connected to the host PC with EyeLink configured.
 
