@@ -1,13 +1,13 @@
 import numpy as np
 import cv2
-from edgeDetection import getSobelEdges, getCannyEdges
+from edgeDetection import getSobelEdges, getCannyEdges, generatePhosphenesForED
 from spvPlayer.models.BS_model import *
 from spvPlayer.models.E2E_model import *
 import pygame
 from parameters import *
 
 
-def initialisation_dl():
+def initialisation_step():
     enc, sim = None, None
 
     # Initialisation for DL models:
@@ -17,6 +17,11 @@ def initialisation_dl():
 
     if vis_representation == 'dl_ash':
         enc = prepAshEncoder()
+        sim = prepRegSimulator()
+
+    # Initialisation for ED methods (using Ashkan's simulator):
+    if "ed_" in vis_representation:
+        enc = None  # No DL model used
         sim = prepRegSimulator()
 
     return enc, sim
@@ -51,19 +56,28 @@ def capGazeCoords(gaze_x, gaze_y, patch_size, image):
     return gaze_x, gaze_y
 
 
-def launchAccordingVisRepMethod(crop_img, enc, sim):
+def launchAccordingVisRepMethod(crop_img, enc, sim, to_debug):
     # Get the visual representation according to the method desired:
-    if vis_representation == 'sobel':
-        cropped_edge_img = getSobelEdges(crop_img)
-    if vis_representation == 'canny':
-        cropped_edge_img = getCannyEdges(crop_img)
+
+    if "ed_" in vis_representation:
+        if vis_representation == 'ed_sobel':
+            cropped_edge_img = getSobelEdges(crop_img)
+
+        if vis_representation == 'ed_canny':
+            cropped_edge_img = getCannyEdges(crop_img)
+
+        showImage(cropped_edge_img, 'ED on patch', to_debug)
+        # Generate phosphene representation for ED methods:
+        cropped_edge_img = generatePhosphenesForED(cropped_edge_img, sim, toggle=False)
+
     if "dl_" in vis_representation:
         if vis_representation == 'dl_jaap':
             cropped_edge_img = jaapPredict(crop_img, enc, sim)
         if vis_representation == 'dl_ash':
             cropped_edge_img = ashPredict(crop_img, enc, sim, toggle=False)
-        # Convert back to 3 channels to prevent mismatch of shape size:
-        cropped_edge_img = cv2.cvtColor(cropped_edge_img, cv2.COLOR_GRAY2RGB)
+
+    # Convert back to 3 channels to prevent mismatch of shape size:
+    cropped_edge_img = cv2.cvtColor(cropped_edge_img, cv2.COLOR_GRAY2RGB)
 
     return cropped_edge_img
 
@@ -82,7 +96,7 @@ def convertFloat32ToUint8(img):
 
     return converted_img
 
-def getGazeContigImg(image, gaze_x, gaze_y, vis_representation, shape_to_crop, patch_size, enc, sim, to_debug):
+def getGazeContigImg(image, gaze_x, gaze_y, enc, sim, to_debug):
     cropped_edge_img = None
 
     # For debugging:
@@ -116,19 +130,19 @@ def getGazeContigImg(image, gaze_x, gaze_y, vis_representation, shape_to_crop, p
             showImage(crop_img, 'Filled circle region', to_debug)
 
             # Get the edges on the cropped portion of the image:
-            crop_vis_rep_img = launchAccordingVisRepMethod(crop_img, enc, sim)
+            crop_vis_rep_img = launchAccordingVisRepMethod(crop_img, enc, sim, to_debug)
             showImage(crop_vis_rep_img, 'Edges', to_debug)
 
         if shape_to_crop == 'circle_opt2':
             # Crop out a square:
             crop_img = getCroppedPatchRegion(image, gaze_y, gaze_x)
-            cropped_edge_img = launchAccordingVisRepMethod(crop_img, enc, sim)
+            cropped_edge_img = launchAccordingVisRepMethod(crop_img, enc, sim, to_debug)
             showImage(cropped_edge_img, 'Edge detection in square', to_debug)
 
             # Convert float32 to uint8 because PyGame requires it:
             converted_img = convertFloat32ToUint8(cropped_edge_img)
             # Fill in white with actual image values:
-            crop_vis_rep_img = cv2.bitwise_and(converted_img, crop_mask_img)
+            crop_vis_rep_img = cv2.bitwise_and(converted_img, crop_mask_img, to_debug)
             showImage(crop_vis_rep_img, 'Filled circle region', to_debug)
 
     if shape_to_crop == 'square':
@@ -159,14 +173,10 @@ def troubleshootGazeContig():
     # This function is for testing the methods which obtain a gaze-contingent image without the eyetracker.
     # You can call it on its own.
 
-    # Initialise DL models if using these:
-    if 'dl_' in vis_representation:
-        encoder, simulator = initialisation_dl()
-    else:
-        encoder, simulator = None, None
+    encoder, simulator = initialisation_step()
 
     img = cv2.imread('images/img_1.jpg')
-    x = getGazeContigImg(img, 400, 600, vis_representation, 'circle_opt1', 128, encoder, simulator, True)
+    x = getGazeContigImg(img, 1282, 652, encoder, simulator, True)
     size = x.shape[1::-1]
     image_surface = pygame.image.frombuffer(x.flatten(), size, 'RGB')
 

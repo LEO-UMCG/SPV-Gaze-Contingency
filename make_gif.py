@@ -5,8 +5,8 @@ import glob
 # Code from: https://stackoverflow.com/questions/72945567/how-do-i-save-an-array-of-pillow-images-as-a-gif
 
 image_list = []
-TO_GIF = "results/test_2023_11_25_16_56/rendered_experiment/stimulus_1"
-GIF_NAME = "ash"
+TO_GIF = "results/test_2023_12_02_14_15/rendered_experiment/stimulus_1"
+GIF_NAME = "avocado"
 
 # Save consecutive images in an image list:
 for filename in sorted(glob.glob(f'{TO_GIF}/*.jpg'), key=len):

@@ -79,7 +79,6 @@ def prepRegSimulator():
         simulator.cuda()
     return simulator
 
-
 gray2color = transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0)==1 else x)
 transes = transforms.Compose([
             transforms.ToPILImage(),
@@ -90,10 +89,10 @@ transes = transforms.Compose([
 
 def ashPredict(img, encoder, simulator, toggle=False):
     input_tensor = transes(img)
-    input_batch = input_tensor.unsqueeze(0) 
+    input_batch = input_tensor.unsqueeze(0)
     with torch.no_grad():
         output = encoder(input_batch.to(DEVICE))
-        if toggle: 
+        if toggle:
             res = output.clone()
             res[output==0] = 1
             res[output==1] = 0

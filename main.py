@@ -51,7 +51,7 @@ from CalibrationGraphicsPygame import CalibrationGraphics
 from math import fabs
 from string import ascii_letters, digits
 # Import supplementary logic:
-from focusedRegion import getGazeContigImg, initialisation_dl
+from focusedRegion import getGazeContigImg, initialisation_step
 # Import parameters:
 from parameters import *
 
@@ -699,8 +699,7 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
 
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, vis_representation,
-                                                 shape_to_crop, patch_size, encoder, simulator, False)
+            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, encoder, simulator, False)
             # For debug:
             # print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
@@ -840,16 +839,14 @@ else:
 test_list = trials[:] * num_trials
 
 # randomize the trial list
-random.shuffle(test_list)
+if to_randomize_trials:
+    random.shuffle(test_list)
 
 trial_index = 1
 should_recal = 'no'
 
-# Initialise DL models if using these:
-if 'dl_' in vis_representation:
-    encoder, simulator = initialisation_dl()
-else:
-    encoder, simulator = None, None
+# Initialise encoders and simulators if using these:
+encoder, simulator = initialisation_step()
 
 for trial_pars in test_list:
     print(f"At stimulus presentation trial: {trial_index}")

@@ -25,6 +25,14 @@ image_extension = 'jpg'
 # Usage example: num_trials = 1
 num_trials = 1
 
+###########
+#  Order  #
+###########
+
+# Whether to show the trials in the order the images are read, or whether to randomize them (bool).
+# Usage example: to_randomize_trials = False
+to_randomize_trials = False
+
 ##################
 # Image duration #
 ##################
@@ -46,13 +54,14 @@ trigger_timeout_duration = 10000
 #########################
 
 # This is the method of visual representation to use (string).
-# Usage example: edge_detector = 'sobel'
+# The prefixes ed_ represent edge detectors and the prefixes dl_ represent deep learning models.
+# Usage example: vis_representation = 'ed_sobel'
 # Options are:
-#       <canny> Canny edge detection
-#       <sobel> Sobel edge detection
+#       <ed_canny> Canny edge detection
+#       <ed_sobel> Sobel edge detection
 #       <dl_jaap> Jaap's DL model
 #       <dl_ash> Ashkan's DL model
-vis_representation = 'dl_ash'
+vis_representation = 'ed_canny'
 
 ################
 # Window shape #
@@ -71,5 +80,5 @@ shape_to_crop = 'circle_opt2'
 ##############
 
 # This is the height (int) of the patch in which the viewer sees the gaze contingent image.
-# Usage example: patch_size = 100
+# Usage example: patch_size = 128
 patch_size = 128

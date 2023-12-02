@@ -1,4 +1,39 @@
 import cv2
+import torch
+from torchvision import transforms
+from spvPlayer.config import *
+
+DEVICE = torch.device(DEVICE_TYPE)
+
+def generatePhosphenesForED(img, simulator, toggle=False):
+    # This method generates phosphenes for the edge detector methods.
+    # Based on ashPredict form BS_model.py:
+
+    gray2color = transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x)
+    transes = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.ToTensor(),
+        transforms.Resize(size=PATCH_SIZE * 2),
+        gray2color
+    ])
+
+    input_tensor = transes(img)
+    input_batch = input_tensor.unsqueeze(0)
+    with torch.no_grad():
+        output = input_batch.to(DEVICE)
+        # Reshape from size [1,3,256,256] to [1,3,32,32]:
+        reshaped_output = torch.nn.functional.interpolate(output, size=(32, 32), mode='bilinear', align_corners=False)
+        # Scale down the number of channels from 3 to 1, so we go from [1,3,256,256] to [1,1,256,256] (i.e RGB -> Gray):
+        rescaled_output = torch.mean(reshaped_output, dim=1, keepdim=True)
+
+        if toggle:
+            res = rescaled_output.clone()
+            res[output == 0] = 1
+            res[output == 1] = 0
+            rescaled_output = res
+        spv = simulator(rescaled_output)
+
+        return spv.cpu().numpy()[0, 0]
 
 
 def preprocess(img):
