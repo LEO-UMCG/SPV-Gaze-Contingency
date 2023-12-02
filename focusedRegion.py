@@ -131,12 +131,28 @@ def getGazeContigImg(image, gaze_x, gaze_y, enc, sim, to_debug):
         if shape_to_crop == 'circle_opt1':
             # Crop out a square:
             crop_img = getCroppedPatchRegion(image, gaze_y, gaze_x)
-            # Fill in white with actual image values:
+
+            # Blurred version of image:
+            blurred = cv2.GaussianBlur(crop_img, (21, 21), 0)
+            showImage(blurred, 'Blurred image', to_debug)
+
+            # Inverted version of mask:
+            inv_mask = cv2.bitwise_not(crop_mask_img)
+            showImage(inv_mask, 'Inverted mask', to_debug)
+
+            # Fill in white areas with actual image values:
             crop_img = cv2.bitwise_and(crop_img, crop_mask_img)
             showImage(crop_img, 'Filled circle region', to_debug)
 
+            crop_img_borders = cv2.bitwise_and(blurred, inv_mask)
+            showImage(crop_img_borders, 'Filled border region', to_debug)
+
+            # Combine blurred outer regions with sharp inner circle:
+            combined_result = cv2.add(crop_img, crop_img_borders)
+            showImage(combined_result, 'Final result', to_debug)
+
             # Get the edges on the cropped portion of the image:
-            crop_vis_rep_img = launchAccordingVisRepMethod(crop_img, enc, sim, to_debug)
+            crop_vis_rep_img = launchAccordingVisRepMethod(combined_result, enc, sim, to_debug)
             showImage(crop_vis_rep_img, 'Edges', to_debug)
 
         if shape_to_crop == 'circle_opt2':
@@ -148,6 +164,7 @@ def getGazeContigImg(image, gaze_x, gaze_y, enc, sim, to_debug):
             # Convert float32 to uint8 because PyGame requires it:
             converted_img = convertFloat32ToUint8(cropped_edge_img)
             # Fill in white with actual image values:
+
             crop_vis_rep_img = cv2.bitwise_and(converted_img, crop_mask_img, to_debug)
             showImage(crop_vis_rep_img, 'Filled circle region', to_debug)
 
@@ -198,4 +215,4 @@ def troubleshootGazeContig():
 
 
 # For testing:
-troubleshootGazeContig()
+# troubleshootGazeContig()

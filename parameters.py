@@ -79,10 +79,10 @@ vis_representation = 'ed_canny'
 # This is the shape of the window to crop (string).
 # Usage example: shape_to_crop = 'circle_opt2'
 # Options are:
-#       <circle_opt1> Edge detection on just a circle (-) generates border artifacts
-#       <circle_opt2> Edge detection on a square, which is then cropped into a circle [*Recommended]
-#       <square> Edge detection on a square
-shape_to_crop = 'circle_opt2'
+#       <circle_opt1> Create a blur on the image while keeping the central circle sharp
+#       <circle_opt2> Visual representations created in square, which is then masked out to leave a circle window
+#       <square> Visual representations created in square window
+shape_to_crop = 'circle_opt1'
 
 ##############
 # Patch size #
