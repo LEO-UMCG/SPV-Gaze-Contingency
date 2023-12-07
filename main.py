@@ -68,12 +68,12 @@ dummy_mode = False
 
 # Workaround for pygame 2.0 shows black screen when running in full
 # screen mode in linux
-full_screen = False
+full_screen = True
 
 # API-2312
 # if 'Linux' in platform.platform():
-#    if int(pygame.version.ver[0])>1:
-#        full_screen=False
+   # if int(pygame.version.ver[0])>1:
+   #     full_screen=False
 
 # get the screen resolution natively supported by the monitor
 scn_width, scn_height = 0, 0
@@ -139,7 +139,11 @@ if not os.path.exists(rend_exp_folder):
     os.makedirs(rend_exp_folder)
     # create a subfolder for each experiment stimulus trial
     for x in range(num_images):
-        os.makedirs(f"{rend_exp_folder}\stimulus_{x+1}")
+        # Subdirectories (OS-dependant):
+        if 'Linux' in platform.platform():
+            os.makedirs(f"{rend_exp_folder}/stimulus_{x + 1}")
+        else:
+            os.makedirs(f"{rend_exp_folder}\stimulus_{x+1}")
 
 # write the parameters set by the experimenter to a file
 relevant_folder = os.path.join(results_folder, session_identifier)
@@ -236,7 +240,13 @@ el_tracker.sendCommand("button_function 5 'accept_target_fixation'")
 # open a Pygame window
 win = None
 if full_screen:
-    win = pygame.display.set_mode((0, 0), FULLSCREEN | DOUBLEBUF)
+    if 'Linux' in platform.platform():
+        # Workaround for Linux:
+        win = pygame.display.set_mode((0, 0), NOFRAME)
+        pygame.display.toggle_fullscreen()
+    else:
+        # Windows:
+        win = pygame.display.set_mode((0, 0), FULLSCREEN | DOUBLEBUF)
 else:
     win = pygame.display.set_mode((0, 0), 0)
 
@@ -469,46 +479,8 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
     # put the tracker in the offline mode first
     el_tracker.setOfflineMode()
 
-    # clear the host screen before we draw the backdrop
+    # clear the host screen
     el_tracker.sendCommand('clear_screen 0')
-
-    # show a backdrop image on the Host screen, imageBackdrop() the recommended
-    # function, if you do not need to scale the image on the Host
-    # parameters: image_file, crop_x, crop_y, crop_width, crop_height,
-    #             x, y on the Host, drawing options
-    ##    el_tracker.imageBackdrop(os.path.join('images', pic),
-    ##                             0, 0, scn_width, scn_height, 0, 0,
-    ##                             pylink.BX_MAXCONTRAST)
-
-    # If you need to scale the backdrop image on the Host, use the old Pylink
-    # bitmapBackdrop(), which requires an additional step of converting the
-    # image pixels into a recognizable format by the Host PC.
-    # pixels = [line1, ...lineH], line = [pix1,...pixW], pix=(R,G,B)
-    #
-    # the bitmapBackdrop() command takes time to return, not recommended
-    # for tasks where the ITI matters, e.g., in an event-related fMRI task
-    # parameters: width, height, pixel, crop_x, crop_y,
-    #             crop_width, crop_height, x, y on the Host, drawing options
-    #
-    # Use the code commented below to convert the image and send the backdrop
-    #
-    pixels = [[img.get_at((i, j))[0:3] for i in range(scn_width)]
-              for j in range(scn_height)]
-    el_tracker.bitmapBackdrop(scn_width, scn_height, pixels,
-                              0, 0, scn_width, scn_height,
-                              0, 0, pylink.BX_MAXCONTRAST)
-
-    # OPTIONAL: draw landmarks on the Host screen
-    # In addition to backdrop image, You may draw simples on the Host PC to use
-    # as landmarks. For illustration purpose, here we draw some texts and a box
-    # For a list of supported draw commands, see the "COMMANDS.INI" file on the
-    # Host PC (under /elcl/exe)
-    left = int(scn_width / 2.0) - 60
-    top = int(scn_height / 2.0) - 60
-    right = int(scn_width / 2.0) + 60
-    bottom = int(scn_height / 2.0) + 60
-    draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
-    el_tracker.sendCommand(draw_cmd)
 
     # send a "TRIALID" message to mark the start of a trial, see Data
     # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
@@ -632,8 +604,13 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
 
                     # Save output to make a gif out of:
                     frame_num += 1
-                    filename = f"\screen_{frame_num}.jpg"
-                    pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
+                    # Subdirectories (OS-dependant):
+                    if 'Linux' in platform.platform():
+                        filename = f"/screen_{frame_num}.jpg"
+                        pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
+                    else:
+                        filename = f"\screen_{frame_num}.jpg"
+                        pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
@@ -725,18 +702,16 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
                                                             int(scn_height))
         el_tracker.sendMessage(imgload_msg)
 
-        # send interest area messages to record in the EDF data file
-        # here we draw a rectangular IA, for illustration purposes
-        # format: !V IAREA RECTANGLE <id> <left> <top> <right> <bottom> [label]
-        # for all supported interest area commands, see the Data Viewer Manual,
-        # "Protocol for EyeLink Data to Viewer Integration"
-        ia_pars = (1, left, top, right, bottom, 'screen_center')
-        el_tracker.sendMessage('!V IAREA RECTANGLE %d %d %d %d %d %s' % ia_pars)
-
         # Save output to make a gif out of:
         frame_num += 1
-        filename = f"\screen_{frame_num}.jpg"
-        pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
+
+        # Subdirectories (OS-dependant):
+        if 'Linux' in platform.platform():
+            filename = f"/screen_{frame_num}.jpg"
+            pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
+        else:
+            filename = f"\screen_{frame_num}.jpg"
+            pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
         # present the picture for a maximum of the provided number of seconds
         if pygame.time.get_ticks() - onset_time >= max_presentation_duration_img:

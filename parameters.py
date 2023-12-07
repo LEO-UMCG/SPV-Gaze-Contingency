@@ -48,7 +48,7 @@ dilate_edges = True
 
 # This determines how long (in ms) to present the participant with the image before timeout (int).
 # Usage example: max_presentation_duration_img = 10000
-max_presentation_duration_img = 10000
+max_presentation_duration_img = 30000
 
 ####################
 # Trigger duration #
@@ -70,7 +70,7 @@ trigger_timeout_duration = 10000
 #       <ed_sobel> Sobel edge detection
 #       <dl_jaap> Jaap's DL model
 #       <dl_ash> Ashkan's DL model
-vis_representation = 'ed_canny'
+vis_representation = 'dl_ash'
 
 ################
 # Window shape #
@@ -82,7 +82,7 @@ vis_representation = 'ed_canny'
 #       <circle_opt1> Create a blur on the image while keeping the central circle sharp
 #       <circle_opt2> Visual representations created in square, which is then masked out to leave a circle window
 #       <square> Visual representations created in square window
-shape_to_crop = 'circle_opt1'
+shape_to_crop = 'circle_opt2'
 
 ##############
 # Patch size #
