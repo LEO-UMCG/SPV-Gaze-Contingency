@@ -33,6 +33,15 @@ num_trials = 1
 # Usage example: to_randomize_trials = False
 to_randomize_trials = False
 
+##############
+# Peripheral #
+##############
+
+# Whether to show the stimulus that would be visible to the periphery of the participant when gaze
+# position exceeds the bounds of the monitor.
+# Usage example: use_periphery = False
+use_periphery = True
+
 #################
 # Edge-dilation #
 #################
@@ -41,14 +50,13 @@ to_randomize_trials = False
 # Usage example: dilate_edges = True
 dilate_edges = True
 
-
 ##################
 # Image duration #
 ##################
 
 # This determines how long (in ms) to present the participant with the image before timeout (int).
 # Usage example: max_presentation_duration_img = 10000
-max_presentation_duration_img = 30000
+max_presentation_duration_img = 10000
 
 ####################
 # Trigger duration #
@@ -91,3 +99,11 @@ shape_to_crop = 'circle_opt2'
 # This is the height (int) of the patch in which the viewer sees the gaze contingent image.
 # Usage example: patch_size = 128
 patch_size = 128
+
+###########
+# EDF2ASC #
+###########
+
+# This is the path to the edf2asc tool that is installed on your PC as part of EyeLink Developers Kit.
+# Usage example: patch_size = 128
+path_to_edf2asc = '/usr/bin/edf2asc'

@@ -5,7 +5,8 @@ from spvPlayer.config import *
 
 DEVICE = torch.device(DEVICE_TYPE)
 
-def generatePhosphenesForED(img, simulator, toggle=False):
+
+def generate_phosphenes_for_ed(img, simulator, toggle=False):
     # This method generates phosphenes for the edge detector methods.
     # Based on ashPredict form BS_model.py:
 
@@ -48,7 +49,7 @@ def preprocess(img):
     return img_blur
 
 
-def getSobelEdges(img):
+def get_sobel_edges(img):
     # First convert to grayscale + blur:
     img = preprocess(img)
 
@@ -66,7 +67,7 @@ def getSobelEdges(img):
     return edges
 
 
-def getCannyEdges(img):
+def get_canny_edges(img):
     # First convert to grayscale + blur:
     img = preprocess(img)
 
@@ -81,4 +82,4 @@ def getCannyEdges(img):
 
 # To test:
 # img = cv2.imread('images/img_1.jpg')
-# getCannyEdges(img)
+# get_canny_edges(img)
