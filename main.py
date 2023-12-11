@@ -450,6 +450,8 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
     trial_index - record the order of trial presentation in the task
     should_recal - we recalibrate the tracker? 'yes' vs. 'no'
     """
+    # initialise parameter
+    should_redo_this_trial = 'no'
 
     # unpacking the trial parameters
     cond, pic = trial_pars
@@ -566,6 +568,8 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
             el_tracker.sendMessage('trigger_timeout_recal')
             # re-calibrate in the following trial
             should_recal = 'yes'
+            # re-do this run in the following trial
+            should_redo_this_trial = 'yes'
             # abort trial
             abort_trial()
             return should_recal
@@ -771,7 +775,7 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
     # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
     el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_OK)
 
-    return should_recal
+    return should_recal, should_redo_this_trial
 
 
 # Step 5: Set up the camera and calibrate the tracker
@@ -825,7 +829,9 @@ encoder, simulator = initialisation_step()
 
 for trial_pars in test_list:
     print(f"At stimulus presentation trial: {trial_index}")
-    should_recal = run_trial(trial_pars, trial_index, should_recal, encoder, simulator)
+    should_recal, should_redo_this_trial = run_trial(trial_pars, trial_index, should_recal, encoder, simulator)
+    if should_redo_this_trial:
+        run_trial(trial_pars, trial_index, should_recal, encoder, simulator)
     trial_index += 1
 
 # Step 7: disconnect, download the EDF file, then terminate the task
