@@ -105,5 +105,6 @@ patch_size = 128
 ###########
 
 # This is the path to the edf2asc tool that is installed on your PC as part of EyeLink Developers Kit.
-# Usage example: patch_size = 128
-path_to_edf2asc = '/usr/bin/edf2asc'
+# Usage example: path_to_edf2asc = '/usr/bin/edf2asc'
+# path_to_edf2asc = '/usr/bin/edf2asc'                                                  # Linux (UMCG PC)
+path_to_edf2asc = 'C:\\Program Files (x86)\\SR Research\\EyeLink\\bin\\edf2asc.exe'     # Windows (local laptop)

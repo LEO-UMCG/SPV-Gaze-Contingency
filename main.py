@@ -51,7 +51,8 @@ from CalibrationGraphicsPygame import CalibrationGraphics
 from math import fabs
 from string import ascii_letters, digits
 # Import supplementary logic:
-from focusedRegion import getGazeContigImg, initialisation_step
+from focused_region import get_gaze_contig_img, initialisation_step
+from results_parsing import convert_edf_to_ascii, make_res_df
 # Import parameters:
 from parameters import *
 
@@ -64,7 +65,7 @@ if len(script_path) != 0:
 pygame.init()
 
 # Set this variable to True to run the script in "Dummy Mode"
-dummy_mode = False
+dummy_mode = True
 
 # Workaround for pygame 2.0 shows black screen when running in full
 # screen mode in linux
@@ -411,9 +412,8 @@ def terminate_task():
         # Close the link to the tracker.
         el_tracker.close()
 
-    # quit pygame and python
+    # quit pygame
     pygame.quit()
-    sys.exit()
 
 
 def abort_trial():
@@ -676,7 +676,7 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
 
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
-            gaze_adjusted_img = getGazeContigImg(original_image, g_x, g_y, encoder, simulator, False)
+            gaze_adjusted_img = get_gaze_contig_img(original_image, g_x, g_y, encoder, simulator, False)
             # For debug:
             # print("Got gaze adjusted image.")
             size = gaze_adjusted_img.shape[1::-1]
@@ -830,3 +830,8 @@ for trial_pars in test_list:
 
 # Step 7: disconnect, download the EDF file, then terminate the task
 terminate_task()
+
+# Step 8: Auto-convert EDF to interpretable form:
+convert_edf_to_ascii(session_identifier)
+make_res_df(session_identifier)
+sys.exit()
