@@ -37,9 +37,7 @@ def make_res_df(session_identifier):
                 data_from_line = line.split()
                 img_timestamp = data_from_line[1]  # The timestamp is always in index 1
                 img_name = data_from_line[5]  # The img name (incl relative path) is in index 5
-                start_pos = (int(data_from_line[6]), int(data_from_line[7]))  # Index starting x, y of where to show img
-                end_pos = (int(data_from_line[8]), int(data_from_line[9]))  # Index ending x, y of where to show img
-                image_load_list.append([int(img_timestamp), img_name, start_pos, end_pos])
+                image_load_list.append([int(img_timestamp), img_name])
 
             # [Step 2b]: Start capturing all gaze information (here we check for gaze data events).
             if not any(item.isalpha() for item in line.split()):
@@ -95,9 +93,9 @@ def make_res_df(session_identifier):
 
 
 # For debugging:
-# test_session_identifier = 'test_2023_12_02_13_45'
+test_session_identifier = 'test_2023_12_14_11_38'
 # convert_edf_to_ascii(test_session_identifier)
-# make_res_df(test_session_identifier)
+make_res_df(test_session_identifier)
 # To read back the pickled result:
 # df = pd.read_pickle(f'results/{test_session_identifier}/{test_session_identifier}')
 

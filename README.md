@@ -62,7 +62,7 @@ The important events from the EDF file are captured and stored in a Pandas dataf
   * `eye_data_gaze`: This is a list of list where each nested list is either:
     * A timestamp (int) of when a blink event occured.
     * A timestamp (int) with corresponding eye gaze coordinates x and y (floats) and the pupil size (float).
-  * `eye_data_img`: This is a list of lists where each nested list is a timestamp (int), the name of the image displayed at this time complete with path (string), and 2 sets of x, y coordinates (tuples) demonstrating the start and end positions of the gaze-contingent window.
+  * `eye_data_img`: This is a list of lists where each nested list is a timestamp (int) and the path to the image displayed in this trial (string). Thus it conveys each time the gaze-contingent image shown on the screen was updated. 
   * `end_trial`: This is a list containing a timestamp (int) of when the trial ended, the event that caused it to end (string), and the response time (int).
 
 ![Output sample](resources/resulting_dataframe.png)
