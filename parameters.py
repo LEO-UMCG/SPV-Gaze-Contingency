@@ -40,7 +40,7 @@ to_randomize_trials = False
 # Whether to show the stimulus that would be visible to the periphery of the participant when gaze
 # position exceeds the bounds of the monitor.
 # Usage example: use_periphery = False
-use_periphery = True
+use_periphery = False
 
 #################
 # Edge-dilation #
@@ -78,7 +78,7 @@ trigger_timeout_duration = 10000
 #       <ed_sobel> Sobel edge detection
 #       <dl_jaap> Jaap's DL model
 #       <dl_ash> Ashkan's DL model
-vis_representation = 'dl_ash'
+vis_representation = 'ed_canny'
 
 ################
 # Window shape #
@@ -90,7 +90,7 @@ vis_representation = 'dl_ash'
 #       <circle_opt1> Create a blur on the image while keeping the central circle sharp
 #       <circle_opt2> Visual representations created in square, which is then masked out to leave a circle window
 #       <square> Visual representations created in square window
-shape_to_crop = 'circle_opt2'
+shape_to_crop = 'square'
 
 ##############
 # Patch size #
