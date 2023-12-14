@@ -65,7 +65,7 @@ if len(script_path) != 0:
 pygame.init()
 
 # Set this variable to True to run the script in "Dummy Mode"
-dummy_mode = True
+dummy_mode = False
 
 # Workaround for pygame 2.0 shows black screen when running in full
 # screen mode in linux
@@ -442,7 +442,7 @@ def abort_trial():
     el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_ERROR)
 
 
-def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
+def run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial, encoder, simulator):
     """ Helper function specifying the events that will occur in a single trial
 
     trial_pars - a list containing trial parameters, e.g.,
@@ -450,8 +450,6 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
     trial_index - record the order of trial presentation in the task
     should_recal - we recalibrate the tracker? 'yes' vs. 'no'
     """
-    # initialise parameter
-    should_redo_this_trial = 'no'
 
     # unpacking the trial parameters
     cond, pic = trial_pars
@@ -572,7 +570,7 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
             should_redo_this_trial = 'yes'
             # abort trial
             abort_trial()
-            return should_recal
+            return should_recal, should_redo_this_trial
 
         # check for keyboard events, skip a trial if ESCAPE is pressed
         # terminate the task is Ctrl-C is pressed
@@ -581,9 +579,11 @@ def run_trial(trial_pars, trial_index, should_recal, encoder, simulator):
                 el_tracker.sendMessage('abort_and_recal')
                 # re-calibrate in the following trial
                 should_recal = 'yes'
+                # re-do this run in the following trial
+                should_redo_this_trial = 'yes'
                 # abort trial
                 abort_trial()
-                return should_recal
+                return should_recal, should_redo_this_trial
 
             if (ev.type == KEYDOWN) and (ev.key == K_c):
                 if ev.mod in [KMOD_LCTRL, KMOD_RCTRL, 4160, 4224]:
@@ -827,11 +827,18 @@ should_recal = 'no'
 # Initialise encoders and simulators if using these:
 encoder, simulator = initialisation_step()
 
+# Initialise parameter
+should_redo_this_trial = 'no'
+
 for trial_pars in test_list:
     print(f"At stimulus presentation trial: {trial_index}")
-    should_recal, should_redo_this_trial = run_trial(trial_pars, trial_index, should_recal, encoder, simulator)
-    if should_redo_this_trial:
-        run_trial(trial_pars, trial_index, should_recal, encoder, simulator)
+    should_recal, should_redo_this_trial = run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial,
+                                                     encoder, simulator)
+    if should_redo_this_trial == 'yes':
+        should_recal, should_redo_this_trial = run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial,
+                                                         encoder, simulator)
+        should_redo_this_trial = 'no'
+
     trial_index += 1
 
 # Step 7: disconnect, download the EDF file, then terminate the task
