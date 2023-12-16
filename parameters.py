@@ -21,7 +21,7 @@ image_extension = 'jpg'
 # Trials #
 ##########
 
-# How many trials i.e. repititions of the images to show (int).
+# How many trials i.e. repetitions of the images to show (int).
 # Usage example: num_trials = 1
 num_trials = 1
 
@@ -40,7 +40,7 @@ to_randomize_trials = False
 # Whether to show the stimulus that would be visible to the periphery of the participant when gaze
 # position exceeds the bounds of the monitor.
 # Usage example: use_periphery = False
-use_periphery = False
+use_periphery = True
 
 #################
 # Edge-dilation #
@@ -78,7 +78,7 @@ trigger_timeout_duration = 10000
 #       <ed_sobel> Sobel edge detection
 #       <dl_jaap> Jaap's DL model
 #       <dl_ash> Ashkan's DL model
-vis_representation = 'ed_canny'
+vis_representation = 'dl_ash'
 
 ################
 # Window shape #
@@ -87,10 +87,10 @@ vis_representation = 'ed_canny'
 # This is the shape of the window to crop (string).
 # Usage example: shape_to_crop = 'circle_opt2'
 # Options are:
-#       <circle_opt1> Create a blur on the image while keeping the central circle sharp
+#       <circle_opt1> Create a blur on the image while keeping the central circle sharp. *Not compatible with DL.
 #       <circle_opt2> Visual representations created in square, which is then masked out to leave a circle window
-#       <square> Visual representations created in square window
-shape_to_crop = 'square'
+#       <square> Visual representations created in square window. *Recommended if you set use_periphery to True.
+shape_to_crop = 'circle_opt2'
 
 ##############
 # Patch size #

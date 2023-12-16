@@ -41,19 +41,19 @@ def cap_gaze_coords_periphery(gaze_x, gaze_y, image):
 
     # If we are outside the right side of the image, cap it at the right-hand borders:
     if gaze_x + patch_size >= image.shape[1]:
-        gaze_x = image.shape[1] - patch_size - 1
+        gaze_x = image.shape[1] - patch_size
 
     # If we are outside the left side of the image, cap it at the left-hand borders:
     if gaze_x - patch_size <= 0:
-        gaze_x = patch_size + 1
+        gaze_x = patch_size
 
     # If we are outside the bottom of the image, cap it at the bottom borders:
     if gaze_y - patch_size <= 0:
-        gaze_y = patch_size + 1
+        gaze_y = patch_size
 
     # If we are outside the top of the image, cap it at the top borders:
     if gaze_y + patch_size >= image.shape[0]:
-        gaze_y = image.shape[0] - patch_size - 1
+        gaze_y = image.shape[0] - patch_size
 
     return gaze_x, gaze_y
 
@@ -108,60 +108,74 @@ def launch_according_vis_rep_method(crop_img, enc, sim, to_debug):
     return cropped_edge_img
 
 
-def get_cropped_patch_region(image, gaze_y, gaze_x):
+def get_cropped_patch_region(image, gaze_y, gaze_x, to_debug):
 
+    # Start out by assuming we are within the bounds of the image.
+    # Crop out a square patch of the image about the gaze x, y coordinates given:
+    exceeded_bounds = False
+    start_y = gaze_y - patch_size
+    end_y = gaze_y + patch_size
+    start_x = gaze_x - patch_size
+    end_x = gaze_x + patch_size
+
+    # The following 4 if-statements are for when we exceed the image bounds. Update the relevant gaze coordinates.
     # If we are outside the right side of the image:
     if gaze_x + patch_size >= image.shape[1]:
-        remaining_space = image.shape[1]-gaze_x
-        start_y = gaze_y - patch_size
-        end_y = gaze_y + patch_size
-        start_x = gaze_x - patch_size
+        remaining_space = image.shape[1] - gaze_x
         end_x = gaze_x + remaining_space
+        exceeded_bounds = True
 
     # If we are outside the left side of the image:
-    elif gaze_x - patch_size <= 0:
+    if gaze_x - patch_size <= 0:
         remaining_space = gaze_x
-        start_y = gaze_y - patch_size
-        end_y = gaze_y + patch_size
         start_x = gaze_x - remaining_space
-        end_x = gaze_x + patch_size
+        exceeded_bounds = True
 
     # If we are outside the bottom of the image:
-    elif gaze_y - patch_size <= 0:
+    if gaze_y - patch_size <= 0:
         remaining_space = gaze_y
         start_y = gaze_y - remaining_space
-        end_y = gaze_y + patch_size
-        start_x = gaze_x - patch_size
-        end_x = gaze_x + patch_size
+        exceeded_bounds = True
 
     # If we are outside the top of the image:
-    elif gaze_y + patch_size >= image.shape[0]:
-        remaining_space = image.shape[0]-gaze_y
-        start_y = gaze_y - patch_size
+    if gaze_y + patch_size >= image.shape[0]:
+        remaining_space = image.shape[0] - gaze_y
         end_y = gaze_y + remaining_space
-        start_x = gaze_x - patch_size
-        end_x = gaze_x + patch_size
+        exceeded_bounds = True
 
-    # Crop out a square patch of the image about the gaze x, y coordinates given:
+    # The following logic is only relevant when we exceed the bounds of the image:
+    if exceeded_bounds:
+        # Adjust the gaze coordinates to the edges of the image. i.e. if they are too close to the edges, adjust the
+        # coordinates.
+        clean_gaze_x, clean_gaze_y = cap_gaze_coords_periphery(gaze_x, gaze_y, image)
+        clean_start_y = clean_gaze_y - patch_size
+        clean_end_y = clean_gaze_y + patch_size
+        clean_start_x = clean_gaze_x - patch_size
+        clean_end_x = clean_gaze_x + patch_size
+
+        # Crop out a truncated version first:
+        crop_img = image[int(start_y): int(end_y), int(start_x): int(end_x)].copy()
+        show_image(crop_img, 'Cropped image based on true gaze loc', to_debug)
+
+        # Create a backdrop:
+        backdrop_img = image[int(clean_start_y): int(clean_end_y), int(clean_start_x): int(clean_end_x)].copy()
+        backdrop_img = np.zeros(backdrop_img.shape, dtype=backdrop_img.dtype)
+        show_image(backdrop_img, 'Backdrop image', to_debug)
+
+        # Paste the cropped image into the backdrop. This is necessary because the visual representation methods
+        # can only deal with images of size patch_size*patch_size:
+        new_width = clean_end_x - clean_start_x
+        new_height = clean_end_y - clean_start_y
+        backdrop_img[int(start_y - clean_start_y): int(new_height - (clean_end_y - end_y)),
+        int(start_x - clean_start_x): int(new_width - (clean_end_x - end_x))] = crop_img
+        crop_img = backdrop_img
+        show_image(crop_img, 'Cropped image pasted onto backdrop', to_debug)
     else:
-        start_y = gaze_y - patch_size
-        end_y = gaze_y + patch_size
-        start_x = gaze_x - patch_size
-        end_x = gaze_x + patch_size
+        crop_img = image[int(start_y): int(end_y), int(start_x): int(end_x)].copy()
+        show_image(crop_img, 'Cropped image based on true gaze loc', to_debug)
+        clean_start_y, clean_end_y, clean_start_x, clean_end_x = start_y, end_y, start_x, end_x
 
-    clean_gaze_x, clean_gaze_y = truncate_gaze_coords(gaze_x, gaze_y, image)
-    clean_start_y = clean_gaze_y - patch_size
-    clean_end_y = clean_gaze_y + patch_size
-    clean_start_x = clean_gaze_x - patch_size
-    clean_end_x = clean_gaze_x + patch_size
-
-    # Crop out a truncated version first:
-    crop_img = image[int(start_y): int(end_y), int(start_x): int(end_x)].copy()
-    # Create a backdrop:
-    crop_img = crop_img[int(clean_start_y): int(clean_end_y), int(clean_start_x): int(clean_end_x)].copy()
-    crop_img[int(start_y): int(end_y), int(start_x): int(end_x)] = crop_img
-
-    return crop_img, clean_start_y, clean_end_y, clean_start_x, clean_end_x
+    return crop_img, start_y, end_y, start_x, end_x, clean_start_y, clean_end_y, clean_start_x, clean_end_x
 
 
 def convert_float32_to_uint8(img):
@@ -183,9 +197,9 @@ def get_gaze_contig_img(image, gaze_x, gaze_y, enc, sim, to_debug):
         return np.zeros(image.shape, dtype=np.uint8)
 
     if use_periphery:
-        gaze_x, gaze_y = cap_gaze_coords_periphery(gaze_x, gaze_y, patch_size, image)
+        gaze_x, gaze_y = cap_gaze_coords_periphery(gaze_x, gaze_y, image)
     else:
-        gaze_x, gaze_y = truncate_gaze_coords(gaze_x, gaze_y, patch_size, image)
+        gaze_x, gaze_y = truncate_gaze_coords(gaze_x, gaze_y, image)
 
         # Exceeding monitor bounds condition - return black screen:
         if gaze_x == -32768.0 or gaze_y == -32768.0:
@@ -202,12 +216,12 @@ def get_gaze_contig_img(image, gaze_x, gaze_y, enc, sim, to_debug):
         show_image(mask, 'Localise circle', to_debug)
 
         # Crop down the circular region to only the area of interest:
-        crop_mask_img, _, _, _, _ = get_cropped_patch_region(mask, gaze_y, gaze_x)
+        crop_mask_img, _, _, _, _, _, _, _, _ = get_cropped_patch_region(mask, gaze_y, gaze_x, to_debug)
         show_image(crop_mask_img, 'Tight circle region', to_debug)
 
         if shape_to_crop == 'circle_opt1':
             # Crop out a square:
-            crop_img, start_y, end_y, start_x, end_x = get_cropped_patch_region(image, gaze_y, gaze_x)
+            crop_img, start_y, end_y, start_x, end_x, clean_start_y, clean_end_y, clean_start_x, clean_end_x = get_cropped_patch_region(image, gaze_y, gaze_x, to_debug)
 
             # Blurred version of image:
             blurred = cv2.GaussianBlur(crop_img, (21, 21), 0)
@@ -234,7 +248,7 @@ def get_gaze_contig_img(image, gaze_x, gaze_y, enc, sim, to_debug):
 
         if shape_to_crop == 'circle_opt2':
             # Crop out a square:
-            crop_img, start_y, end_y, start_x, end_x = get_cropped_patch_region(image, gaze_y, gaze_x)
+            crop_img, start_y, end_y, start_x, end_x, clean_start_y, clean_end_y, clean_start_x, clean_end_x = get_cropped_patch_region(image, gaze_y, gaze_x, to_debug)
             cropped_edge_img = launch_according_vis_rep_method(crop_img, enc, sim, to_debug)
             show_image(cropped_edge_img, 'Edge detection in square', to_debug)
 
@@ -247,16 +261,24 @@ def get_gaze_contig_img(image, gaze_x, gaze_y, enc, sim, to_debug):
 
     if shape_to_crop == 'square':
         # First get a cropped out patch about the gaze coordinates:
-        crop_img, start_y, end_y, start_x, end_x = get_cropped_patch_region(image, gaze_y, gaze_x)
+        crop_img, start_y, end_y, start_x, end_x, clean_start_y, clean_end_y, clean_start_x, clean_end_x = get_cropped_patch_region(image, gaze_y, gaze_x, to_debug)
         # Next use the according visual representation method on this result:
         crop_vis_rep_img = launch_according_vis_rep_method(crop_img, enc, sim, to_debug)
         show_image(crop_vis_rep_img, 'Edges', to_debug)
 
+    # Crop the patch_size*patch_size image back to desired size:
+    new_width = clean_end_x - clean_start_x
+    new_height = clean_end_y - clean_start_y
+    crop_img_back = crop_vis_rep_img[int(start_y - clean_start_y): int(new_height - (clean_end_y - end_y)),
+        int(start_x - clean_start_x): int(new_width - (clean_end_x - end_x))].copy()
+
     # Create a black canvas of size of the image:
     black_canvas = np.zeros(image.shape, dtype=crop_vis_rep_img.dtype)
-    # Paste the cropped out region onto the black canvas:
-    black_canvas[int(start_y): int(end_y), int(start_x): int(end_x)] = crop_vis_rep_img
+
+    # black_canvas[int(start_y): int(end_y), int(start_x): int(end_x)] = crop_vis_rep_img
+    black_canvas[int(start_y): int(end_y), int(start_x): int(end_x)] = crop_img_back
     updated_img_to_show = black_canvas
+    show_image(crop_img, 'Cropped image pasted onto black canvas', to_debug)
 
     if crop_vis_rep_img.dtype != 'uint8':
         # Convert float32 to uint8 because PyGame requires it:
@@ -274,17 +296,9 @@ def troubleshoot_gaze_contig():
 
     encoder, simulator = initialisation_step()
 
-    image = cv2.imread('images/img_2.jpg')
-    #
-    crop_vis_rep_img,  start_y, end_y, start_x, end_x = get_cropped_patch_region(image, 500, 1910)
-    # show_image(crop_vis_rep_img, 'res', True)
-    black_canvas = np.zeros(image.shape, dtype=crop_vis_rep_img.dtype)
-    # Paste the cropped out region onto the black canvas:
-    black_canvas[int(start_y): int(end_y), int(start_x): int(end_x)] = crop_vis_rep_img
-    updated_img_to_show = black_canvas
-    show_image(updated_img_to_show, 'res', True)
+    image = cv2.imread('images/img_51.jpg')
 
-    x = get_gaze_contig_img(image, 2, 652, encoder, simulator, True)
+    x = get_gaze_contig_img(image, 20, 60, encoder, simulator, True)
     size = x.shape[1::-1]
     image_surface = pygame.image.frombuffer(x.flatten(), size, 'RGB')
 
@@ -300,4 +314,4 @@ def troubleshoot_gaze_contig():
 
 
 # For testing:
-troubleshoot_gaze_contig()
+# troubleshoot_gaze_contig()
