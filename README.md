@@ -27,14 +27,9 @@ The deep learning (DL) models come from the [spv-Player](https://github.com/arne
 
 ## How to start
 
-Make a new venv and install the following packages:
+The packages used within the Conda environment have been exported to `req.txt`. To create a new environment with Conda and install these packages, use:
 
-    pip install opencv-python
-    pip install pygame
-    pip install PIL
-    pip install --index-url=https://pypi.sr-support.com sr-research-pylink
-
-- [ ] _Update the above with a pip requirements file_.
+`conda create -n <environment-name> --file req.txt`
 
 Set the parameters to chosen values inside `parameters.py`. If you want to use a DL method for visual representation, ensure:
 * the parameters in `spvPlayer/config.py` are also set to chosen values
@@ -51,7 +46,7 @@ The results will be created inside the `results\{result_fn}_{dt}\` directory whe
 * `{result_fn}_{dt}` file: this is the pickled Pandas dataframe containing the useful results for further analysis. See _Resulting Dataframe_ for further explanation.
 * `{result_fn}_{dt}.txt` file: this file contains the parameter values chosen for this run, as retrieved from the `parameters.py` file 
 
-Additionally, the following folder will be generated:
+Additionally, the following folder will be generated provided the flag `to_save_images` is set to `True` in `parameters.py`:
 * `rendered_experiment/`: this folder will contain a subdirectory for each of the number of input images you have provided. E.g. with the 2 example images, the subdirectories created are `stimulus_1/` and  `stimulus_2/`. Each of these subdirectories contains images of each of the screens the participant sees in the experiment. You can use the `make_gif.py` script to create a gif out of these images to display the experiment how the participant has experienced it.
 
 #### Resulting Dataframe
@@ -63,7 +58,7 @@ The important events from the EDF file are captured and stored in a Pandas dataf
     * A timestamp (int) of when a blink event occured.
     * A timestamp (int) with corresponding eye gaze coordinates x and y (floats) and the pupil size (float).
   * `eye_data_img`: This is a list of lists where each nested list is a timestamp (int) and the path to the image displayed in this trial (string). Thus it conveys each time the gaze-contingent image shown on the screen was updated. 
-  * `end_trial`: This is a list containing a timestamp (int) of when the trial ended, the event that caused it to end (string), and the response time (int).
+  * `end_trial`: This is a list containing a timestamp (int) of when the trial ended, the response key that was pressed that caused it to end (string), and the response time (int).
 
 ![Output sample](resources/resulting_dataframe.png)
 

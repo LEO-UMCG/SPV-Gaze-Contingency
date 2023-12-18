@@ -73,8 +73,8 @@ full_screen = True
 
 # API-2312
 # if 'Linux' in platform.platform():
-   # if int(pygame.version.ver[0])>1:
-   #     full_screen=False
+# if int(pygame.version.ver[0])>1:
+#     full_screen=False
 
 # get the screen resolution natively supported by the monitor
 scn_width, scn_height = 0, 0
@@ -84,7 +84,7 @@ trials = []
 # Count the number of images in the "images" dir:
 num_images = len(glob.glob1("images/", f"*.{image_extension}"))
 for x in range(num_images):
-    trials.append([f'cond_{x+1}', f'img_{x+1}.{image_extension}'])
+    trials.append([f'cond_{x + 1}', f'img_{x + 1}.{image_extension}'])
 
 # Set up EDF data file name and local data folder
 #
@@ -134,17 +134,18 @@ if not os.path.exists(session_folder):
     os.makedirs(session_folder)
 
 # create a folder to store the results of the rendered experiment
-rend_exp_identifier = "rendered_experiment"
-rend_exp_folder = os.path.join(session_folder, rend_exp_identifier)
-if not os.path.exists(rend_exp_folder):
-    os.makedirs(rend_exp_folder)
-    # create a subfolder for each experiment stimulus trial
-    for x in range(num_images):
-        # Subdirectories (OS-dependant):
-        if 'Linux' in platform.platform():
-            os.makedirs(f"{rend_exp_folder}/stimulus_{x + 1}")
-        else:
-            os.makedirs(f"{rend_exp_folder}\stimulus_{x+1}")
+if to_save_images:
+    rend_exp_identifier = "rendered_experiment"
+    rend_exp_folder = os.path.join(session_folder, rend_exp_identifier)
+    if not os.path.exists(rend_exp_folder):
+        os.makedirs(rend_exp_folder)
+        # create a subfolder for each experiment stimulus trial
+        for x in range(num_images):
+            # Subdirectories (OS-dependant):
+            if 'Linux' in platform.platform():
+                os.makedirs(f"{rend_exp_folder}/stimulus_{x + 1}")
+            else:
+                os.makedirs(f"{rend_exp_folder}\stimulus_{x + 1}")
 
 # write the parameters set by the experimenter to a file
 relevant_folder = os.path.join(results_folder, session_identifier)
@@ -607,18 +608,19 @@ def run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial, enc
                         g_x, g_y = new_sample.getLeftEye().getGaze()
 
                     # Save output to make a gif out of:
-                    frame_num += 1
-                    # Subdirectories (OS-dependant):
-                    if 'Linux' in platform.platform():
-                        filename = f"/screen_{frame_num}.jpg"
-                        pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
-                    else:
-                        filename = f"\screen_{frame_num}.jpg"
-                        pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
+                    if to_save_images:
+                        frame_num += 1
+                        # Subdirectories (OS-dependant):
+                        if 'Linux' in platform.platform():
+                            filename = f"/screen_{frame_num}.jpg"
+                            pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
+                        else:
+                            filename = f"\screen_{frame_num}.jpg"
+                            pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
                     # break the while loop if the current gaze position is
                     # in a 120 x 120 pixels region around the screen centered
-                    fix_x, fix_y = (scn_width/2.0, scn_height/2.0)
+                    fix_x, fix_y = (scn_width / 2.0, scn_height / 2.0)
                     if fabs(g_x - fix_x) < 60 and fabs(g_y - fix_y) < 60:
                         # record gaze start time
                         if not in_hit_region:
@@ -677,7 +679,6 @@ def run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial, enc
             pygame.display.flip()
 
         if experiment_type == 'display_roi':
-
             # Render image where gaze is currently laying:
             surf.fill((128, 128, 128))  # clear the screen
             gaze_adjusted_img = get_gaze_contig_img(original_image, g_x, g_y, encoder, simulator, False)
@@ -707,15 +708,15 @@ def run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial, enc
         el_tracker.sendMessage(imgload_msg)
 
         # Save output to make a gif out of:
-        frame_num += 1
-
-        # Subdirectories (OS-dependant):
-        if 'Linux' in platform.platform():
-            filename = f"/screen_{frame_num}.jpg"
-            pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
-        else:
-            filename = f"\screen_{frame_num}.jpg"
-            pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
+        if to_save_images:
+            frame_num += 1
+            # Subdirectories (OS-dependant):
+            if 'Linux' in platform.platform():
+                filename = f"/screen_{frame_num}.jpg"
+                pygame.image.save(win, f"{rend_exp_folder}/stimulus_{trial_index}" + filename)
+            else:
+                filename = f"\screen_{frame_num}.jpg"
+                pygame.image.save(win, f"{rend_exp_folder}\stimulus_{trial_index}" + filename)
 
         # present the picture for a maximum of the provided number of seconds
         if pygame.time.get_ticks() - onset_time >= max_presentation_duration_img:
@@ -731,14 +732,15 @@ def run_trial(trial_pars, trial_index, should_recal, should_redo_this_trial, enc
 
         # check for keyboard events
         for ev in pygame.event.get():
-            # Stop stimulus presentation when the spacebar is pressed
-            if (ev.type == KEYDOWN) and (ev.key == K_SPACE):
-                # send over a message to log the key press
-                el_tracker.sendMessage('key_pressed')
+            if ev.type == KEYDOWN:
+                # Stop stimulus presentation when the response-keys is pressed:
+                if ev.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
+                    # send over a message to log the key press
+                    el_tracker.sendMessage(f'key_pressed_{pygame.key.name(ev.key)}')
 
-                # get response time in ms, PsychoPy report time in sec
-                RT = pygame.time.get_ticks() - onset_time
-                get_keypress = True
+                    # get response time in ms, PsychoPy report time in sec
+                    RT = pygame.time.get_ticks() - onset_time
+                    get_keypress = True
 
             # Abort a trial if "ESCAPE" is pressed
             if (ev.type == KEYDOWN) and (ev.key == K_ESCAPE):
@@ -786,7 +788,7 @@ if dummy_mode:
                'Press ENTER to quit the script'
 else:
     task_msg = 'On each trial, look at the cross to start,\n' + \
-               'then press SPACEBAR to end a trial\n' + \
+               'then press UP, DOWN, LEFT or RIGHT to end a trial\n' + \
                '\nPress Ctrl-C if you need to quit the task early\n' + \
                '\nNow, press ENTER to calibrate tracker'
 

@@ -33,14 +33,22 @@ num_trials = 1
 # Usage example: to_randomize_trials = False
 to_randomize_trials = False
 
+###############
+# Save images #
+###############
+
+# Whether to save each update of the display gaze-contingent image (bool). These can be utilised to make a gif out of.
+# Usage example: to_save_images = True
+to_save_images = True
+
 ##############
 # Peripheral #
 ##############
 
 # Whether to show the stimulus that would be visible to the periphery of the participant when gaze
-# position exceeds the bounds of the monitor.
+# position exceeds the bounds of the monitor (bool).
 # Usage example: use_periphery = False
-use_periphery = True
+use_periphery = False
 
 #################
 # Edge-dilation #
@@ -104,7 +112,7 @@ patch_size = 128
 # EDF2ASC #
 ###########
 
-# This is the path to the edf2asc tool that is installed on your PC as part of EyeLink Developers Kit.
+# This is the path to the edf2asc tool that is installed on your PC as part of EyeLink Developers Kit (string).
 # Usage example: path_to_edf2asc = '/usr/bin/edf2asc'
 path_to_edf2asc = '/usr/bin/edf2asc'                                                  # Linux (UMCG PC)
 # path_to_edf2asc = 'C:\\Program Files (x86)\\SR Research\\EyeLink\\bin\\edf2asc.exe'     # Windows (local laptop)
