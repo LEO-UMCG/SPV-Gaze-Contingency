@@ -62,4 +62,4 @@ The important events from the EDF file are captured and stored in a Pandas dataf
 
 ![Output sample](resources/resulting_dataframe.png)
 
-To perform further analyis on the dataframe, simply read in the pickled dataframe: `df = pd.read_pickle(path_to_pickled_df)`.
+To perform further analyis on the dataframe, simply read in the pickled dataframe: `df = pd.read_pickle(path_to_pickled_df)`. The script `plot_generator.py` can independently be executed to visualise the results of a single experiment from this resulting dataframe.
