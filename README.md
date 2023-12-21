@@ -5,16 +5,16 @@ This project aims to develop a framework for assessing Simulated Prosthetic Visi
 
 This script has been adapted from the example script provided by SR Research in `C:\Program Files (x86)\SR Research\EyeLink\SampleExperiments\Python\examples\Pygame_examples\fixationWindow_fastSamples.py`. For more information, visit [SR Research SUPPORT](https://www.sr-research.com/support/thread-7525.html).
 
+The experiment trials that are designed in this framework consist of the following features:
+* A participant visually scans an image (of which they only see a gaze-contingent part of), and presses a key to indicate recognition (up, down, left, right).
+* The visual representation of an image is configurable. This is to enable the usage of this framework to compare different methods of visual representation and see which are most intuitive.
+* The experimenter can map the response keys to particular answers to be able to determine if the participant recognized the image appropriately. 
+* The gaze coordinates, response indicated and response times are recorded for analysis.
+
 ### Demo
 
-Tracking the position of the eye:
-![Output sample](resources/tracking_eye_pos.gif)
-
-Rendering parts of the image based on the current eye position:
-![Output sample](resources/image_following_gaze.gif)
-
-Rendering a gaze-contingent edge-detected version of the image:
-![Output sample](resources/gaze_cont_canny.gif)
+Experiment trial showing a participant looking at a visual representation of a fork:
+![Output sample](resources/fork_demo.gif)
 
 ## Visual representation methods
 In regard to visual representation, the methods available are:
